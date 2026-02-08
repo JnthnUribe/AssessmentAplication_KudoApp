@@ -1,0 +1,37 @@
+[
+    {
+        "title": "EcoTrack",
+        "category": "App Móvil",
+        "description": "Aplicación móvil para rastrear la huella de carbono personal y sugerir hábitos sustentables.",
+        "imageUrl": "https://placehold.co/600x400/1E293B/3B82F6?text=EcoTrack",
+        "totalVotes": 0
+    },
+    {
+        "title": "StudyBuddy AI",
+        "category": "Inteligencia Artificial",
+        "description": "Asistente de estudio con IA que genera resúmenes y cuestionarios a partir de tus apuntes.",
+        "imageUrl": "https://placehold.co/600x400/1E293B/3B82F6?text=StudyBuddy",
+        "totalVotes": 0
+    },
+    {
+        "title": "CampusNav",
+        "category": "App Móvil",
+        "description": "Sistema de navegación indoor para encontrar aulas y edificios dentro del campus universitario.",
+        "imageUrl": "https://placehold.co/600x400/1E293B/3B82F6?text=CampusNav",
+        "totalVotes": 0
+    },
+    {
+        "title": "CodeQuest",
+        "category": "Videojuego",
+        "description": "Videojuego educativo que enseña programación a través de puzzles y aventuras interactivas.",
+        "imageUrl": "https://placehold.co/600x400/1E293B/3B82F6?text=CodeQuest",
+        "totalVotes": 0
+    },
+    {
+        "title": "MediAlert",
+        "category": "IoT / Wearables",
+        "description": "Dispositivo wearable que monitorea signos vitales y envía alertas de emergencia a contactos.",
+        "imageUrl": "https://placehold.co/600x400/1E293B/3B82F6?text=MediAlert",
+        "totalVotes": 0
+    }
+]
