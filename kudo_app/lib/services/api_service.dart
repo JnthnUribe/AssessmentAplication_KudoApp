@@ -4,8 +4,8 @@ import '../models/project.dart';
 
 /// Servicio para comunicación con la API de KUDO
 class ApiService {
-  // URL base de la API (cambiar para producción)
-  static const String baseUrl = 'http://localhost:5000/api';
+  // OJO: Como es Web App, localhost funciona perfecto.
+  static const String baseUrl = 'http://localhost:5145/api';
 
   /// Obtiene la lista de todos los proyectos desde la API
   Future<List<Project>> fetchProjects() async {

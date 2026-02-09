@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Driver;
 using KudoApi.Models;
-using KudoApi.Services;
 
 namespace KudoApi.Controllers;
 
@@ -8,38 +8,19 @@ namespace KudoApi.Controllers;
 [Route("api/[controller]")]
 public class ProjectsController : ControllerBase
 {
-    private readonly MongoDbService _mongoService;
+    private readonly IMongoCollection<Project> _projectsCollection;
 
-    public ProjectsController(MongoDbService mongoService)
+    public ProjectsController(IMongoDatabase database)
     {
-        _mongoService = mongoService;
+        // Conectamos directo a la colección "Projects" que creaste en Compass
+        _projectsCollection = database.GetCollection<Project>("Projects");
     }
 
-    /// <summary>
-    /// GET /api/projects
-    /// Retorna la lista de todos los proyectos
-    /// </summary>
     [HttpGet]
-    public async Task<ActionResult<List<Project>>> GetProjects()
+    public async Task<IActionResult> Get()
     {
-        var projects = await _mongoService.GetAllProjectsAsync();
+        // Busca todos los documentos y los devuelve como JSON limpio
+        var projects = await _projectsCollection.Find(_ => true).ToListAsync();
         return Ok(projects);
-    }
-
-    /// <summary>
-    /// GET /api/projects/{id}
-    /// Retorna un proyecto específico por ID
-    /// </summary>
-    [HttpGet("{id}")]
-    public async Task<ActionResult<Project>> GetProject(string id)
-    {
-        var project = await _mongoService.GetProjectByIdAsync(id);
-        
-        if (project == null)
-        {
-            return NotFound(new { message = "Proyecto no encontrado" });
-        }
-        
-        return Ok(project);
     }
 }

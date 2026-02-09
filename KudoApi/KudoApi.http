@@ -1,0 +1,6 @@
+@KudoApi_HostAddress = http://localhost:5145
+
+GET {{KudoApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

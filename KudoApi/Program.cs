@@ -1,20 +1,21 @@
-using KudoApi.Services;
+using MongoDB.Bson;
+using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ====== SERVICIOS ======
+// --- 1. CONFIGURACIÓN MONGODB (Sin inyección compleja) ---
+var mongoClient = new MongoClient("mongodb://localhost:27017");
+var database = mongoClient.GetDatabase("KudoDB");
 
-// MongoDB - Registrar como Singleton
-builder.Services.AddSingleton<MongoDbService>();
+// Registramos la base de datos para poder pedirla en los controladores
+builder.Services.AddSingleton(database);
 
-// Controllers
+// --- 2. SERVICIOS ---
 builder.Services.AddControllers();
-
-// Swagger para documentación
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// CORS - Permitir cualquier origen (para desarrollo)
+// --- 3. CORS (Vital para que Flutter Web funcione) ---
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -27,23 +28,15 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// ====== MIDDLEWARE ======
-
-// Swagger solo en desarrollo
+// --- 4. PIPELINE HTTP ---
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-// Habilitar CORS antes de los endpoints
 app.UseCors("AllowAll");
-
-// Mapear controllers
+app.UseAuthorization();
 app.MapControllers();
-
-// Mensaje de inicio
-Console.WriteLine("🚀 KUDO API iniciada en http://localhost:5000");
-Console.WriteLine("📚 Swagger disponible en http://localhost:5000/swagger");
 
 app.Run();

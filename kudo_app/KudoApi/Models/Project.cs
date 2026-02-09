@@ -4,9 +4,8 @@ using MongoDB.Bson.Serialization.Attributes;
 namespace KudoApi.Models;
 
 /// <summary>
-/// Modelo de Proyecto para MongoDB
+/// Modelo de Proyecto que mapea a la colección "projects" en MongoDB
 /// </summary>
-[BsonIgnoreExtraElements]
 public class Project
 {
     [BsonId]
