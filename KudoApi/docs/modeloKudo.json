@@ -1,0 +1,70 @@
+{
+  "users": [
+    {
+      "_id": "uuid_or_objectid",
+      "firstName": "string",
+      "firstSurname": "string",
+      "email": "string",
+      "passwordHash": "string",
+      "role": "string",
+      "isDeleted": false,
+      "createdAt": "2023-10-27T10:00:00Z",
+      "updatedAt": "2023-10-27T10:00:00Z"
+    }
+  ],
+  "projects": [
+    {
+      "_id": "uuid_or_objectid",
+      "creatorId": "ref_to_user_id",
+      "qrToken": "string",
+      "status": "string",
+      "platform": "string",
+      "isDeleted": false,
+      "identity": {
+        "title": "string",
+        "category": "string"
+      },
+      "narrative": {
+        "problem": "string",
+        "roleDescription": "string"
+      },
+      "techStack": [
+        "React",
+        "Node.js"
+      ],
+      "outcomes": {
+        "results": [
+          "string"
+        ],
+        "learnings": [
+          "string"
+        ]
+      },
+      "media": {
+        "imageUrls": [
+          "url1",
+          "url2"
+        ],
+        "videoUrl": "string",
+        "links": [
+          {
+            "label": "GitHub",
+            "url": "https://..."
+          }
+        ]
+      },
+      "updatedAt": "2023-10-27T10:00:00Z"
+    }
+  ],
+  "reviews": [
+    {
+      "_id": "uuid",
+      "projectId": "ref_to_project_id",
+      "judgeId": "ref_to_user_id",
+      "score": 5,
+      "comment": "string",
+      "judgeFullNameSnap": "Juan Perez",
+      "createdAt": "2023-10-27T10:00:00Z"
+    }
+  ]
+}
