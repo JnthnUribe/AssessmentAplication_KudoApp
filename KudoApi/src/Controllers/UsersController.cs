@@ -50,5 +50,23 @@ namespace KudoApi.Controllers
             await _userService.DeleteAsync(id);
             return NoContent();
         }
+        [HttpPost("login")]
+        public async Task<ActionResult<User>> Login([FromBody] KudoApi.Core.Application.DTOs.LoginRequest request)
+        {
+            var user = await _userService.GetByEmailAsync(request.Email);
+            
+            if (user == null)
+            {
+                return Unauthorized("Invalid email or password"); // Security best practice: generic message
+            }
+
+            // Simple string comparison as requested. In production, use hashing!
+            if (user.PasswordHash != request.Password)
+            {
+                return Unauthorized("Invalid email or password");
+            }
+
+            return Ok(user);
+        }
     }
 }

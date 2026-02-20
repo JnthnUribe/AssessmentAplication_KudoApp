@@ -1,0 +1,289 @@
+.project-details-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    opacity: 0;
+    animation: fadeIn 0.3s forwards;
+    backdrop-filter: blur(2px);
+}
+
+.project-details-panel {
+    position: fixed;
+    top: 0;
+    right: -30%;
+    /* Start off-screen */
+    width: 30%;
+    height: 100%;
+    background-color: #fff;
+    box-shadow: -5px 0 25px rgba(0, 0, 0, 0.15);
+    z-index: 1001;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    animation: slideIn 0.3s forwards;
+    transition: transform 0.3s ease-out;
+}
+
+.details-cover-placeholder {
+    width: 100%;
+    height: 25%;
+    min-height: 150px;
+    background-color: #e5e7eb;
+    border-bottom: 1px solid #ddd;
+    flex-shrink: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    /* Align content to bottom of cover, or top? User said top-left corner of card. */
+    padding: 1.5rem 2rem;
+}
+
+/* Override for user request "Superior Izquierda" literally */
+.details-cover-placeholder {
+    justify-content: flex-start;
+    /* Align to top */
+    padding-top: 3rem;
+    /* Space for potential top bar or just spacing */
+}
+
+.details-cover-content {
+    position: absolute;
+    top: 1.5rem;
+    left: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    z-index: 2;
+}
+
+@keyframes slideIn {
+    to {
+        right: 0;
+    }
+}
+
+@keyframes fadeIn {
+    to {
+        opacity: 1;
+    }
+}
+
+.details-title {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 800;
+    color: #111;
+    line-height: 1.1;
+}
+
+.details-category-pill {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #444;
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(4px);
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    align-self: flex-start;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.btn-close-details {
+    position: absolute;
+    top: 1.5rem;
+    right: 2rem;
+    background: transparent;
+    border: none;
+    font-size: 2.5rem;
+    /* Larger for visibility */
+    color: #111;
+    /* Darker for contrast */
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s, color 0.2s;
+    z-index: 20;
+    /* Ensure high z-index */
+}
+
+.btn-close-details:hover {
+    color: #000;
+    transform: none;
+}
+
+.details-content {
+    padding: 0 2.5rem 2rem 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem;
+    flex: 1;
+    /* Pushes footer down */
+}
+
+.details-section-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #9ca3af;
+    /* Light gray text */
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: none;
+    padding: 0;
+}
+
+.text-content {
+    color: #374151;
+    /* Darker gray for readability */
+    line-height: 1.6;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.tech-stack-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+}
+
+.tech-badge {
+    background-color: #f3f4f6;
+    color: #1f2937;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.outcomes-list {
+    list-style-type: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.outcome-item {
+    position: relative;
+    padding-left: 1.5rem;
+    color: #4b5563;
+    line-height: 1.6;
+    font-size: 1rem;
+}
+
+.outcome-item::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #2563eb;
+    /* Blue bullet */
+    font-weight: bold;
+    font-size: 1.2rem;
+    line-height: 1.2rem;
+}
+
+.media-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+}
+
+.media-item {
+    width: 100%;
+    aspect-ratio: 16/9;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #eee;
+}
+
+.links-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.link-item {
+    color: #0066cc;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.link-item:hover {
+    text-decoration: underline;
+}
+
+.details-footer {
+    padding: 1.5rem 2.5rem;
+    background-color: #f9fafb;
+    /* Slight gray background for footer */
+    border-top: 1px solid #f3f4f6;
+    display: flex;
+    gap: 1rem;
+    margin-top: auto;
+    /* Push to bottom */
+}
+
+.btn-footer-share {
+    flex: 1;
+    padding: 0.75rem;
+    background-color: #fff;
+    border: 1px solid #e5e7eb;
+    color: #374151;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-footer-share:hover {
+    background-color: #f3f4f6;
+}
+
+.btn-footer-edit {
+    flex: 1;
+    padding: 0.75rem;
+    background-color: #2563eb;
+    /* Blue primary */
+    border: none;
+    color: white;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-footer-edit:hover {
+    background-color: #1d4ed8;
+}
+
+/* Scrollbar styling */
+.project-details-panel::-webkit-scrollbar {
+    width: 8px;
+}
+
+.project-details-panel::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.project-details-panel::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 4px;
+}
+
+.project-details-panel::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+}

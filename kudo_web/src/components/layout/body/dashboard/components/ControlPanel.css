@@ -1,0 +1,67 @@
+.control-panel {
+    position: fixed;
+    top: 0;
+    left: 300px;
+    /* Width of the sidebar */
+    width: calc(100% - 300px);
+    height: 60px;
+    /* Adjust as needed */
+    background-color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 2rem;
+    padding: 0 4rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    z-index: 900;
+    /* Below sidebar if sidebar overlaps, or manageable */
+    box-sizing: border-box;
+}
+
+.control-panel-title {
+    font-size: 1.3rem;
+    font-weight: 400;
+    color: #333;
+    margin: 0;
+}
+
+.profile-section {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    /* Push to the right */
+    gap: 0.8rem;
+    cursor: pointer;
+    position: relative;
+    padding-left: 2rem;
+}
+
+.profile-section::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2px;
+    height: 30px;
+    /* Adjust height */
+    background-color: #e0e0e0;
+}
+
+.profile-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #f0f0f0;
+    color: #555;
+    border: 1px solid #e0e0e0;
+}
+
+.profile-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+}

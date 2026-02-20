@@ -1,0 +1,197 @@
+.introduction-screen {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 450vh;
+    /* Increased scroll height */
+    width: 100%;
+    background-color: #020205;
+    background-image:
+        radial-gradient(circle at 10% 10%, rgba(30, 60, 255, 0.227), transparent 40%),
+        radial-gradient(circle at 90% 50%, rgba(30, 60, 255, 0.227), transparent 45%);
+    color: white;
+    font-family: 'DM Sans', sans-serif;
+    position: relative;
+    overflow-x: hidden;
+    /* Prevent horizontal scroll */
+}
+
+.blur-overlay {
+    position: fixed;
+    /* Fixed to stay during scroll */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    backdrop-filter: blur(60px);
+    z-index: 0;
+    pointer-events: none;
+}
+
+.content {
+    position: fixed;
+    /* Fixed to viewport */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1;
+    text-align: center;
+    padding: 0 1rem;
+    box-sizing: border-box;
+    will-change: opacity, transform;
+    /* Optimize for animations */
+}
+
+h1 {
+    font-size: 4.5rem;
+    margin-bottom: 1.5rem;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+}
+
+.highlight-blue {
+    color: #3b82f6;
+}
+
+p {
+    font-size: 1.25rem;
+    color: #9ca3af;
+    max-width: 800px;
+    margin: 0 auto 2.5rem auto;
+    font-weight: 300;
+}
+
+.cta-container {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+}
+
+.primary-btn {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.primary-btn:hover {
+    background-color: #2563eb;
+    transform: translateY(-2px);
+}
+
+.secondary-btn {
+    background-color: transparent;
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+}
+
+.secondary-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* About Section Styles */
+.about-container {
+    max-width: 1200px;
+    width: 100%;
+    text-align: center;
+}
+
+.about-container h2 {
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
+}
+
+.about-text {
+    font-size: 1.3rem;
+    line-height: 1.6;
+    color: #d1d5db;
+    margin-bottom: 4rem;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    width: 100%;
+    text-align: left;
+}
+
+.feature-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 2rem;
+    border-radius: 20px;
+    transition: transform 0.3s, background-color 0.3s;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.feature-card h3 {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    color: white;
+    font-weight: 600;
+}
+
+.feature-card p {
+    font-size: 1rem;
+    margin: 0;
+    color: #9ca3af;
+}
+
+.opportunities-section {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1;
+    text-align: center;
+    padding: 0 1rem;
+    box-sizing: border-box;
+    will-change: opacity, transform;
+}
+
+.objectives-section {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1;
+    text-align: center;
+    padding: 0 1rem;
+    box-sizing: border-box;
+    will-change: opacity, transform;
+}
