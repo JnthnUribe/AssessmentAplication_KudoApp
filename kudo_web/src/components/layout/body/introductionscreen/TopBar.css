@@ -1,0 +1,64 @@
+.topbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 80px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 40px;
+    box-sizing: border-box;
+    z-index: 10;
+}
+
+.topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    /* Space between logo and nav items */
+}
+
+.profile-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-decoration: none;
+    transition: transform 0.2s, opacity 0.2s;
+    opacity: 0.8;
+}
+
+.profile-btn:hover {
+    transform: scale(1.1);
+    opacity: 1;
+}
+
+.topbar-logo {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: white;
+    /* You can adjust the color */
+    letter-spacing: 2px;
+    font-family: 'Sen', sans-serif;
+}
+
+.topbar-nav {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+}
+
+.nav-item {
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    font-size: 1.1rem;
+    font-weight: 500;
+    transition: color 0.3s;
+    font-family: 'Sen', sans-serif;
+    white-space: nowrap;
+}
+
+.nav-item:hover {
+    color: white;
+}

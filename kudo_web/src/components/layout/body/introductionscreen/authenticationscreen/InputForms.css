@@ -1,0 +1,113 @@
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    /* More space between label/input if using labels */
+    margin-bottom: 0.5rem;
+    /* Add some space between individual form groups */
+}
+
+
+
+.form-group input {
+    background-color: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(226, 232, 240, 0.5);
+    /* Light grey border */
+    border-radius: 10px;
+    /* Make it a bit rounder to match larger size */
+    padding: 1.25rem 1.5rem;
+    /* Increased padding */
+    color: #ffffff;
+    font-size: 1.15rem;
+    /* Increased font size */
+    transition: all 0.2s ease;
+    outline: none;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.form-group input:focus {
+    border-color: #ffffff;
+    /* White border on focus */
+    background-color: rgba(255, 255, 255, 0.15);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.form-group input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1.05rem;
+    letter-spacing: 0.5px;
+    /* helps with spacing of text */
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.forgot-password {
+    color: #e2e8f0;
+    font-size: 0.875rem;
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+.forgot-password:hover {
+    color: #333333;
+}
+
+.login-btn {
+    background-color: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 1.1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 1rem;
+    width: 100%;
+}
+
+.login-btn:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.auth-footer {
+    margin-top: 2rem;
+    text-align: center;
+    font-size: 0.875rem;
+    color: #e2e8f0;
+}
+
+.register-link {
+    background: none;
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    font-weight: 600;
+    padding: 0;
+    transition: color 0.15s ease;
+    font-size: inherit;
+    outline: none;
+    /* Removed the white border on click */
+}
+
+.register-link:hover,
+.register-link:focus {
+    text-decoration: underline;
+    outline: none;
+    /* Ensure no border on focus */
+}

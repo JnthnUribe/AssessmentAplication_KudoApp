@@ -1,0 +1,111 @@
+/* AuthenticationScreen.css */
+.authentication-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: #333333;
+    /* Dark Grey text */
+    font-family: 'DM Sans', sans-serif;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 50;
+    opacity: 0;
+    animation: fadeInAuth 0.5s ease-out forwards;
+    animation-delay: 0.4s;
+    /* Wait for intro elements to mostly fade out before showing the blur and inputs */
+}
+
+@keyframes fadeInAuth {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* Subtle gradient accent in background - removed for strict theme or made subtle grey */
+.authentication-screen::before {
+    display: none;
+}
+
+.back-button {
+    position: absolute;
+    top: 2rem;
+    left: 2rem;
+    background: transparent;
+    border: none;
+    color: #64748b;
+    /* Slate 500 */
+    padding: 0.5rem 0;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    z-index: 20;
+    transition: color 0.2s ease;
+}
+
+.back-button:hover {
+    color: #ffffff;
+}
+
+.auth-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12rem;
+    /* Increased gap to push form away from text */
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 1400px;
+    /* Increased max width so it spans more of the screen */
+    margin: 0 auto;
+    padding: 0 4rem;
+    /* Adjusted padding */
+}
+
+.auth-left-content {
+    flex: 1;
+    color: white;
+    padding-right: 2rem;
+    animation: fadeIn 1s ease-in-out;
+}
+
+.auth-hero-title {
+    font-size: 5rem;
+    font-weight: 800;
+    margin-bottom: 20px;
+    line-height: 1.2;
+}
+
+.auth-hero-subtitle {
+    font-size: 2rem;
+    font-weight: 300;
+    line-height: 1.4;
+    color: #e2e8f0;
+}
+
+.auth-card {
+    background: transparent;
+    border: none;
+    padding: 0;
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    min-height: auto;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}

@@ -4,7 +4,7 @@ import NavigationBar from './components/NavigationBar';
 import ControlPanel from './components/ControlPanel';
 import Home from './sections/home/Home';
 
-import MyProjects from './sections/myprojects/NewProject';
+import MyProjects from './sections/myprojects/MyProjects';
 import NewProject from './sections/myprojects/newproject/NewProject';
 
 const Dashboard = () => {

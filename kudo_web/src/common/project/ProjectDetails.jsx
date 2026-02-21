@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import './ProjectDetails.css';
-import TechStackCarousel from '../../../../../../common/TechStackCarousel';
+import TechStackCarousel from '../TechStackCarousel';
 
-const ProjectDetails = ({ project, onClose }) => {
+const ProjectDetails = ({ project, onClose, onEdit }) => {
 
     // Close on escape key
     useEffect(() => {
@@ -99,7 +99,7 @@ const ProjectDetails = ({ project, onClose }) => {
 
                 <div className="details-footer">
                     <button className="btn-footer-share">Compartir</button>
-                    <button className="btn-footer-edit">Editar Proyecto</button>
+                    <button className="btn-footer-edit" onClick={() => onEdit(project)}>Editar Proyecto</button>
                 </div>
             </div>
         </div>

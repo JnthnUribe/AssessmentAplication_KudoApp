@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import './NewProject.css';
+import React, { useState, useEffect } from 'react';
+import './EditProject.css';
 import { projectService } from '../../../../../../../services/projectService';
-import { uploadFile } from '../../../../../../../features/fileUploader';
 
-const NewProject = ({ onCancel }) => {
+const EditProject = ({ project, onCancel, onSave }) => {
+    // Initialize form data with the project data
     const [formData, setFormData] = useState({
+        id: '',
         status: '',
         platform: '',
         identity: {
@@ -39,8 +40,37 @@ const NewProject = ({ onCancel }) => {
         }
     });
 
-    const [selectedImage, setSelectedImage] = useState(null);
-    const [isUploading, setIsUploading] = useState(false);
+    useEffect(() => {
+        if (project) {
+            // Populate form with existing project data
+            setFormData({
+                id: project.id || project.Id,
+                status: project.status,
+                platform: project.platform || '',
+                identity: {
+                    title: project.identity?.title || '',
+                    category: project.identity?.category || ''
+                },
+                narrative: {
+                    problem: project.narrative?.problem || '',
+                    roleDescription: project.narrative?.roleDescription || ''
+                },
+                techStack: project.techStack || [],
+                outcomes: {
+                    results: project.outcomes?.results || [],
+                    learnings: project.outcomes?.learnings || []
+                },
+                media: {
+                    imageUrls: project.media?.imageUrls || [],
+                    videoUrl: project.media?.videoUrl || '',
+                    links: project.media?.links || []
+                },
+                // Keep other fields that might be needed
+                creatorId: project.creatorId,
+                createdAt: project.createdAt
+            });
+        }
+    }, [project]);
 
     const handleIdentityChange = (e) => {
         const { name, value } = e.target;
@@ -143,82 +173,33 @@ const NewProject = ({ onCancel }) => {
         }));
     };
 
-    const handleImageUpload = async () => {
-        if (!selectedImage) {
-            alert('Por favor selecciona una imagen primero.');
-            return;
-        }
-
-        setIsUploading(true);
+    const handleUpdate = async () => {
         try {
-            const cloudName = 'dufvodhuw';
-            const secureUrl = await uploadFile(selectedImage, "kudofiles", cloudName);
-
-            setFormData(prev => ({
-                ...prev,
-                media: {
-                    ...prev.media,
-                    imageUrls: [...prev.media.imageUrls, secureUrl]
-                }
-            }));
-            setSelectedImage(null);
-            document.getElementById('image-upload-input').value = "";
-        } catch (error) {
-            console.error("Error subiendo la imagen:", error);
-            alert(error.message || 'Error al subir la imagen.');
-        } finally {
-            setIsUploading(false);
-        }
-    };
-
-    const handleProjectSubmit = async (status) => {
-        try {
-            // Basic validation: Title is always required for identification
             if (!formData.identity.title.trim()) {
                 alert('El título del proyecto es obligatorio.');
                 return;
             }
 
-            // Get user from localStorage
-            const userStr = localStorage.getItem('user');
-            if (!userStr) {
-                alert('No hay usuario autenticado. Por favor inicie sesión nuevamente.');
-                return;
-            }
-
-            const user = JSON.parse(userStr);
-            const creatorId = user.id || user.Id;
-
-            if (!creatorId) {
-                alert('Error: No se pudo obtener el ID del usuario.');
-                return;
-            }
-
-            // Prepare payload
             const projectData = {
                 ...formData,
-                status: status,
-                creatorId: creatorId,
-                createdAt: new Date(),
                 updatedAt: new Date()
             };
 
-            await projectService.create(projectData);
-            alert(status === 'Publicado' ? 'Proyecto publicado exitosamente!' : 'Borrador guardado exitosamente!');
+            await projectService.update(formData.id, projectData);
+            alert('Proyecto actualizado exitosamente!');
 
-            // Optional: Redirect to Home after success
-            if (onCancel) onCancel();
+            if (onSave) onSave();
 
         } catch (error) {
-            console.error('Error creating project:', error);
-            alert('Error al guardar el proyecto. Por favor intente de nuevo.');
+            console.error('Error updating project:', error);
+            alert('Error al actualizar el proyecto. Por favor intente de nuevo.');
         }
     };
 
     return (
-        <div className="new-project-container">
-            <h2 className="new-project-title">Crear Nuevo Proyecto</h2>
-            <form className="new-project-form" onSubmit={(e) => e.preventDefault()}>
+        <div className="edit-project-container">
+            <h2 className="edit-project-title">Editar Proyecto</h2>
+            <form className="edit-project-form" onSubmit={(e) => e.preventDefault()}>
 
                 {/* Identity Section */}
                 <div className="form-section">
@@ -268,7 +249,7 @@ const NewProject = ({ onCancel }) => {
                             value={formData.narrative.problem}
                             onChange={handleNarrativeChange}
                             rows="3"
-                            placeholder="Describe el problema que el proyecto resuelve. Ej. Los usuarios tenían dificultades para rastrear sus gastos diarios..."
+                            placeholder="Describe el problema que el proyecto resuelve."
                         />
                     </div>
                     <div className="form-group">
@@ -278,7 +259,7 @@ const NewProject = ({ onCancel }) => {
                             value={formData.narrative.roleDescription}
                             onChange={handleNarrativeChange}
                             rows="3"
-                            placeholder="Explica tu rol y responsabilidades. Ej. Fui el desarrollador principal encargado del backend..."
+                            placeholder="Explica tu rol y responsabilidades."
                         />
                     </div>
                 </div>
@@ -356,91 +337,46 @@ const NewProject = ({ onCancel }) => {
 
                 {/* Media Section */}
                 <div className="form-section">
-                    <h3 className="section-subtitle">Media y Enlaces</h3>
+                    <h3 className="section-subtitle">Media y Enlaces (Deshabilitado en Edición)</h3>
 
-                    <label className="sub-label">Imágenes del Proyecto (Subida a Cloudinary)</label>
-                    <div className="input-group-add">
-                        <input
-                            id="image-upload-input"
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => setSelectedImage(e.target.files[0])}
-                            style={{ flex: 1, padding: '0.5rem', border: '1px solid #ccc', borderRadius: '4px' }}
-                        />
-                        <button
-                            type="button"
-                            className="btn-add-item"
-                            onClick={handleImageUpload}
-                            disabled={isUploading || !selectedImage}
-                            style={{ minWidth: '130px', opacity: isUploading || !selectedImage ? 0.6 : 1 }}
-                        >
-                            {isUploading ? 'Subiendo...' : 'Subir Imagen'}
-                        </button>
-                    </div>
-                    <div className="items-list">
-                        {formData.media.imageUrls.map((url, index) => (
-                            <div key={index} className="list-item">
-                                <span className="text-truncate">
-                                    <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: '#0066cc', textDecoration: 'none' }}>Ver Imagen {index + 1}</a>
-                                </span>
-                                <button type="button" className="btn-remove-small" onClick={() => removeArrayItem('media', index, 'imageUrls')}>×</button>
-                            </div>
-                        ))}
-                    </div>
-
-                    <div className="form-group" style={{ marginTop: '1rem' }}>
-                        <label>URL del Video (Opcional)</label>
+                    <div className="form-group">
+                        <label>URL del Video</label>
                         <input
                             type="text"
                             name="videoUrl"
                             value={formData.media.videoUrl}
                             onChange={handleMediaChange}
-                            placeholder="https://youtube.com/..."
+                            placeholder="https://..."
+                            disabled
                         />
                     </div>
 
-                    <label className="sub-label" style={{ marginTop: '1rem', display: 'block' }}>Enlaces Externos</label>
-                    <div className="input-group-add">
-                        <input
-                            type="text"
-                            value={tempData.media.links.label}
-                            onChange={(e) => setTempData({
-                                ...tempData,
-                                media: { ...tempData.media, links: { ...tempData.media.links, label: e.target.value } }
-                            })}
-                            placeholder="Etiqueta (ej. Repositorio)"
-                            style={{ width: '30%' }}
-                        />
-                        <input
-                            type="text"
-                            value={tempData.media.links.url}
-                            onChange={(e) => setTempData({
-                                ...tempData,
-                                media: { ...tempData.media, links: { ...tempData.media.links, url: e.target.value } }
-                            })}
-                            placeholder="https://..."
-                            style={{ width: '60%' }}
-                        />
-                        <button type="button" className="btn-add-item" onClick={addLink} style={{ width: '10%' }}>+</button>
+                    <label className="sub-label">Imágenes (URLs)</label>
+                    <div className="items-list">
+                        {formData.media.imageUrls.map((url, index) => (
+                            <div key={index} className="list-item">
+                                <span className="text-truncate">{url}</span>
+                            </div>
+                        ))}
                     </div>
+
+                    <label className="sub-label" style={{ marginTop: '1rem', display: 'block' }}>Enlaces Externos</label>
                     <div className="items-list">
                         {formData.media.links.map((link, index) => (
                             <div key={index} className="list-item">
                                 <span>{link.label}: <a href={link.url} target="_blank" rel="noopener noreferrer">{link.url}</a></span>
-                                <button type="button" className="btn-remove-small" onClick={() => removeLink(index)}>×</button>
                             </div>
                         ))}
                     </div>
                 </div>
 
                 <div className="form-actions">
+                    <button type="button" className="btn-save" onClick={handleUpdate}>Editar</button>
                     <button type="button" className="btn-cancel" onClick={onCancel}>Cancelar</button>
-                    <button type="button" className="btn-draft" onClick={() => handleProjectSubmit('Borrador')} disabled={isUploading}>Guardar Borrador</button>
-                    <button type="button" className="btn-submit" onClick={() => handleProjectSubmit('Publicado')} disabled={isUploading}>Publicar Proyecto</button>
                 </div>
             </form>
         </div>
     );
 };
 
-export default NewProject;
+export default EditProject;
