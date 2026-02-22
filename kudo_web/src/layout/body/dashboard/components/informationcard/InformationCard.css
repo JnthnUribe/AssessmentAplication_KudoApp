@@ -1,0 +1,15 @@
+.information-card {
+    width: 20%;
+    height: 100vh;
+    background: #ffffff;
+    border-radius: 0 2.8% 2.8% 0;
+    margin: 0;
+    padding: 2.5rem 2rem;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+    border: none;
+    border-right: 1px solid rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    z-index: 1000;
+}

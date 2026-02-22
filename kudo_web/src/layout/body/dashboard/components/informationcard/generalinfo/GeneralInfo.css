@@ -1,0 +1,159 @@
+/* --- Layout Profile Section --- */
+.info-profile-section {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.info-profile-picture-container {
+    width: 6.5rem;
+    /* ~50% visual proportion relative to text block */
+    height: 6.5rem;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
+    flex-shrink: 0;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+
+    /* For real picture you would use:
+     background-image: url('path');
+     background-size: cover;
+     background-position: center;
+    */
+}
+
+.info-profile-details {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.info-profile-name {
+    font-size: 1.4rem;
+    color: #222;
+    margin: 0 0 0.3rem 0;
+    font-weight: 700;
+}
+
+.info-profile-role {
+    font-size: 1rem;
+    color: #666;
+    font-weight: 500;
+}
+
+/* --- Project Stats Section --- */
+.info-stats-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    margin-bottom: 2rem;
+}
+
+.info-stats-section h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+    color: #444;
+}
+
+.info-stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.95rem;
+    color: #555;
+    padding: 0.5rem 1rem;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+}
+
+.info-stat-row:hover {
+    background-color: #f0f0f0;
+}
+
+.info-stat-row strong {
+    color: #222;
+    font-size: 1rem;
+}
+
+/* --- Divider Settings --- */
+.info-divider-container {
+    padding: 0 1.5rem;
+    /* Prevents touching the screen edge */
+    margin: 2rem 0;
+}
+
+.info-divider {
+    border: none;
+    border-top: 1px solid #eaeaea;
+    margin: 0;
+}
+
+/* --- Top Projects Section --- */
+.info-ranking-section h3 {
+    margin: 0 0 1rem 0;
+    font-size: 1.1rem;
+    color: #444;
+}
+
+.empty-ranking-msg {
+    color: #888;
+    font-style: italic;
+    font-size: 0.95rem;
+    text-align: center;
+    padding: 2rem 0;
+    background-color: #fafafa;
+    border-radius: 8px;
+    border: 1px dashed #ddd;
+}
+
+.info-ranking-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.info-ranking-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.8rem 1rem;
+    background-color: #ffffff;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.info-ranking-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.06);
+}
+
+.rank-number {
+    font-weight: 700;
+    color: #888;
+    font-size: 0.9rem;
+    width: 20px;
+}
+
+.rank-title {
+    flex: 1;
+    font-weight: 500;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.rank-score {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #f39c12;
+    /* Star color visually tied to score */
+    flex-shrink: 0;
+}

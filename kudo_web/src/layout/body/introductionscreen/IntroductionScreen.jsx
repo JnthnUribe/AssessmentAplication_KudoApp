@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './IntroductionScreen.css';
-import introdImg from '../../../../assets/introdImg.jpeg';
-import TopBar from './TopBar';
+import introdImg from '../../../assets/introdImg.jpeg';
+import TopBar from './topbar/TopBar';
 import AuthenticationScreen from './authenticationscreen/AuthenticationScreen';
 
 const IntroductionScreen = () => {

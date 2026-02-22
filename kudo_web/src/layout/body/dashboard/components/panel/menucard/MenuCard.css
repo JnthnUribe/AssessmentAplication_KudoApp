@@ -1,0 +1,147 @@
+.menu-card-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: flex-end;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(4px);
+}
+
+.menu-card-overlay.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.menu-card {
+    width: 50%;
+    height: calc(100% - 3rem);
+    margin: 1.5rem;
+    background-color: #ffffff;
+    border-radius: 24px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    transform: translateX(calc(100% + 1.5rem));
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    position: relative;
+}
+
+.menu-card.open {
+    transform: translateX(0);
+}
+
+.menu-card-header {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    z-index: 10;
+}
+
+.close-menu-btn {
+    background: #f5f5f5;
+    border: none;
+    cursor: pointer;
+    color: #000000;
+    padding: 8px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.close-menu-btn:hover {
+    background-color: #000000;
+    color: #ffffff;
+}
+
+.menu-card-content {
+    flex: 1;
+    padding: 2.5rem;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.menu-options-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.menu-footer {
+    border-top: 1px solid #f0f0f0;
+    padding-top: 2rem;
+    margin-top: 2rem;
+}
+
+.logout-btn {
+    width: 100%;
+    padding: 1.2rem;
+    background-color: #000;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.logout-btn:hover {
+    background-color: #333;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.menu-option {
+    font-size: 2.8rem;
+    color: #000000 !important;
+    font-weight: 800;
+    cursor: pointer;
+    padding: 0.5rem 0;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    width: fit-content;
+    position: relative;
+    text-decoration: none;
+    line-height: 1.1;
+}
+
+.menu-options-list:hover .menu-option {
+    color: #bbbbbb !important;
+}
+
+.menu-options-list .menu-option:hover {
+    color: #000000 !important;
+    transform: translateX(2rem);
+}
+
+.menu-option::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 0;
+    height: 4px;
+    background: #000;
+    transition: width 0.3s ease;
+}
+
+.menu-options-list .menu-option:hover::after {
+    width: 100%;
+}
