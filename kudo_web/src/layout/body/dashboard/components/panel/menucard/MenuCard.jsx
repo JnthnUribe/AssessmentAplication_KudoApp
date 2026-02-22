@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import './MenuCard.css';
 
-const MenuCard = ({ isOpen, onClose }) => {
+const MenuCard = ({ isOpen, onClose, onViewChange }) => {
     const navigate = useNavigate();
 
     const handleLogout = () => {
@@ -28,8 +28,9 @@ const MenuCard = ({ isOpen, onClose }) => {
                 </div>
                 <div className="menu-card-content">
                     <ul className="menu-options-list">
-                        <li className="menu-option">Ver mi perfil</li>
-                        <li className="menu-option">Crear nuevo proyecto</li>
+                        <li className="menu-option" onClick={() => { onViewChange('projects'); onClose(); }}>Ver mi perfil</li>
+                        <li className="menu-option" onClick={() => { onViewChange('projects'); onClose(); }}>Ver mis proyectos</li>
+                        <li className="menu-option" onClick={() => { onViewChange('new-project'); onClose(); }}>Crear nuevo proyecto</li>
                         <li className="menu-option">Revisar notificaciones</li>
                     </ul>
 

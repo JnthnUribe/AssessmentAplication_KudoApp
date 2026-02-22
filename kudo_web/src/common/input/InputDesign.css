@@ -1,0 +1,48 @@
+.input-design-group {
+    margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.input-design-label {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #e0e0e0;
+    /* Brighter light gray for better visibility */
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.input-design-group input::placeholder,
+.input-design-group textarea::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+    /* Brighter placeholders */
+}
+
+.input-design-field {
+    padding: 1.2rem;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    color: #fff;
+    font-size: 1.1rem;
+    font-family: inherit;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.input-design-field:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4), 0 0 0 2px rgba(255, 255, 255, 0.1);
+}
+
+textarea.input-design-field {
+    min-height: 150px;
+    resize: vertical;
+}

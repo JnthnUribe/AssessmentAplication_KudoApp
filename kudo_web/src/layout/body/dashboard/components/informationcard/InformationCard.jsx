@@ -2,10 +2,10 @@ import React from 'react';
 import './InformationCard.css';
 import GeneralInfo from './generalinfo/GeneralInfo';
 
-const InformationCard = () => {
+const InformationCard = ({ isBlank }) => {
     return (
         <aside className="information-card">
-            <GeneralInfo />
+            {!isBlank && <GeneralInfo />}
         </aside>
     );
 };
