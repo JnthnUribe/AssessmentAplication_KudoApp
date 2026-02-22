@@ -20,6 +20,41 @@
     /* Brighter placeholders */
 }
 
+.input-with-action {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-with-action .input-design-field {
+    width: 100%;
+    padding-right: 3.5rem;
+    /* Space for the button */
+}
+
+.input-action-btn {
+    position: absolute;
+    right: 0.8rem;
+    background: transparent;
+    color: #fff;
+    border: none;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 2rem;
+    font-weight: 300;
+    /* Thinner plus sign for elegance */
+    transition: all 0.2s ease;
+}
+
+.input-action-btn:hover {
+    transform: scale(1.2);
+    color: #fff;
+}
+
 .input-design-field {
     padding: 1.2rem;
     background: rgba(255, 255, 255, 0.1);

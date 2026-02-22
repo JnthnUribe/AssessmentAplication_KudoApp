@@ -19,9 +19,6 @@ namespace KudoApi.Core.Domain.Entities
         [BsonElement("status")]
         public string Status { get; set; } = string.Empty;
 
-        [BsonElement("platform")]
-        public string Platform { get; set; } = string.Empty;
-
         [BsonElement("isDeleted")]
         public bool IsDeleted { get; set; } = false;
 
@@ -54,6 +51,9 @@ namespace KudoApi.Core.Domain.Entities
 
         [BsonElement("category")]
         public string Category { get; set; } = string.Empty;
+
+        [BsonElement("platform")]
+        public string Platform { get; set; } = string.Empty;
     }
 
     public class ProjectNarrative

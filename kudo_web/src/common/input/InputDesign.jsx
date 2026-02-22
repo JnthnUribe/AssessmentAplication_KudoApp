@@ -1,26 +1,50 @@
 import React from 'react';
 import './InputDesign.css';
 
-const InputDesign = ({ label, type = 'text', placeholder, value, onChange, multiline = false, className = '' }) => {
+const InputDesign = ({
+    label,
+    type = 'text',
+    value,
+    onChange,
+    placeholder,
+    multiline = false,
+    className = "",
+    onKeyPress,
+    actionIcon,
+    onAction
+}) => {
     return (
         <div className={`input-design-group ${className}`}>
             {label && <label className="input-design-label">{label}</label>}
-            {multiline ? (
-                <textarea
-                    className="input-design-field"
-                    placeholder={placeholder}
-                    value={value}
-                    onChange={onChange}
-                />
-            ) : (
-                <input
-                    type={type}
-                    className="input-design-field"
-                    placeholder={placeholder}
-                    value={value}
-                    onChange={onChange}
-                />
-            )}
+            <div className="input-with-action">
+                {multiline ? (
+                    <textarea
+                        className="input-design-field textarea"
+                        value={value}
+                        onChange={onChange}
+                        placeholder={placeholder}
+                        onKeyPress={onKeyPress}
+                    />
+                ) : (
+                    <input
+                        className="input-design-field"
+                        type={type}
+                        value={value}
+                        onChange={onChange}
+                        placeholder={placeholder}
+                        onKeyPress={onKeyPress}
+                    />
+                )}
+                {actionIcon && (
+                    <button
+                        type="button"
+                        className="input-action-btn"
+                        onClick={onAction}
+                    >
+                        {actionIcon}
+                    </button>
+                )}
+            </div>
         </div>
     );
 };
