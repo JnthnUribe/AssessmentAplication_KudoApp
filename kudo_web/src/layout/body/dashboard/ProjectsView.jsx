@@ -59,6 +59,12 @@ const ProjectsView = ({ onViewChange }) => {
         setSelectedProject(updatedProject);
     };
 
+    const handleProjectDelete = (deletedId) => {
+        setProjects(prevProjects => prevProjects.filter(p => p.id !== deletedId));
+        setSelectedProject(null);
+        setIsPreviewOpen(false);
+    };
+
     const filteredProjects = projects.filter(project => {
         const currentStatus = project.status || project.Status || 'Borrador';
         if (filter === 'todos') return true;
@@ -159,6 +165,7 @@ const ProjectsView = ({ onViewChange }) => {
                 isOpen={isPreviewOpen}
                 onClose={() => setIsPreviewOpen(false)}
                 onUpdate={handleProjectUpdate}
+                onDelete={handleProjectDelete}
             />
         </div>
     );

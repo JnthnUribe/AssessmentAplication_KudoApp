@@ -7,11 +7,12 @@ import { uploadFile, deleteFile } from '../../../features/fileUploader';
 const cloudName = 'dufvodhuw';
 const uploadPreset = 'kudofiles';
 
-const SpecificProjectView = ({ project, isOpen, onClose, onUpdate }) => {
+const SpecificProjectView = ({ project, isOpen, onClose, onUpdate, onDelete }) => {
     const [selectedMedia, setSelectedMedia] = React.useState(null);
     const [isEditing, setIsEditing] = React.useState(false);
     const [editFormData, setEditFormData] = React.useState(null);
     const [isSaving, setIsSaving] = React.useState(false);
+    const [isDeleting, setIsDeleting] = React.useState(false);
     const [isUploading, setIsUploading] = React.useState(false);
     const [newTech, setNewTech] = React.useState('');
     const fileInputRef = React.useRef(null);
@@ -19,20 +20,24 @@ const SpecificProjectView = ({ project, isOpen, onClose, onUpdate }) => {
     React.useEffect(() => {
         if (project) {
             setEditFormData({
-                title: project.identity?.title || '',
-                problem: project.narrative?.problem || '',
-                roleDescription: project.narrative?.roleDescription || '',
-                techStack: project.techStack || [],
-                results: project.outcomes?.results?.join('\n') || '',
-                learnings: project.outcomes?.learnings?.join('\n') || '',
-                category: Array.isArray(project.identity?.category) ? project.identity.category[0] || '' : project.identity?.category || '',
-                platform: Array.isArray(project.identity?.platform) ? project.identity.platform[0] || '' : project.identity?.platform || '',
-                status: project.status || 'Borrador',
-                images: project.media?.images || (project.media?.imageUrls || []).map(url => ({
+                title: project.identity?.title || project.Identity?.Title || '',
+                problem: project.narrative?.problem || project.Narrative?.Problem || '',
+                roleDescription: project.narrative?.roleDescription || project.Narrative?.RoleDescription || '',
+                techStack: project.techStack || project.TechStack || [],
+                results: (project.outcomes?.results || project.Outcomes?.Results || [])?.join('\n') || '',
+                learnings: (project.outcomes?.learnings || project.Outcomes?.Learnings || [])?.join('\n') || '',
+                category: Array.isArray(project.identity?.category || project.Identity?.Category)
+                    ? (project.identity?.category || project.Identity?.Category)[0] || ''
+                    : project.identity?.category || project.Identity?.Category || '',
+                platform: Array.isArray(project.identity?.platform || project.Identity?.Platform)
+                    ? (project.identity?.platform || project.Identity?.Platform)[0] || ''
+                    : project.identity?.platform || project.Identity?.Platform || '',
+                status: project.status || project.Status || 'Borrador',
+                images: project.media?.images || project.Media?.Images || (project.media?.imageUrls || project.Media?.ImageUrls || []).map(url => ({
                     url,
-                    deleteToken: (project.media?.deleteTokens || []).find(t => (t.url || t.Url) === url)?.token || ''
+                    deleteToken: (project.media?.deleteTokens || project.Media?.DeleteTokens || []).find(t => (t.url || t.Url) === url)?.token || ''
                 })),
-                videoUrl: project.media?.videoUrl || '',
+                videoUrl: project.media?.videoUrl || project.Media?.VideoUrl || '',
             });
         }
     }, [project]);
@@ -260,6 +265,33 @@ const SpecificProjectView = ({ project, isOpen, onClose, onUpdate }) => {
             alert('Error al guardar los cambios: ' + error.message);
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    const handleDeleteProject = async () => {
+        if (window.confirm('¿Estás seguro de que deseas eliminar este proyecto? Esta acción no se puede deshacer.')) {
+            setIsDeleting(true);
+            try {
+                // Delete all media from Cloudinary first
+                const mediaToDelete = editFormData?.images || [];
+                const deletePromises = mediaToDelete
+                    .filter(img => img.deleteToken)
+                    .map(img => deleteFile(img.deleteToken, cloudName).catch(err => console.error("Cloudinary delete failed:", err)));
+
+                await Promise.all(deletePromises);
+
+                // Delete project from database
+                await projectService.delete(project.id);
+
+                if (onDelete) {
+                    onDelete(project.id);
+                }
+                onClose();
+            } catch (error) {
+                alert('Error al eliminar el proyecto: ' + error.message);
+            } finally {
+                setIsDeleting(false);
+            }
         }
     };
 
@@ -581,9 +613,18 @@ const SpecificProjectView = ({ project, isOpen, onClose, onUpdate }) => {
                                 </button>
                             </div>
                         ) : (
-                            <button className="edit-project-btn" onClick={handleEditToggle}>
-                                Editar Proyecto
-                            </button>
+                            <div className="footer-actions">
+                                <button className="edit-project-btn" onClick={handleEditToggle}>
+                                    Editar Proyecto
+                                </button>
+                                <button
+                                    className="delete-project-btn-main"
+                                    onClick={handleDeleteProject}
+                                    disabled={isDeleting}
+                                >
+                                    {isDeleting ? 'Borrando...' : 'Borrar Proyecto'}
+                                </button>
+                            </div>
                         )}
                     </div>
                 </div>
