@@ -2,30 +2,42 @@
     display: flex;
     width: 100%;
     min-height: 240px;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(38, 38, 38, 0.55);
     backdrop-filter: blur(15px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 16px;
-    overflow: hidden;
+    /* overflow: hidden; Removed to allow status badge to float */
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+    box-shadow: none;
+    position: relative;
+    /* Context for status container */
 }
 
 .project-card-horizontal:hover {
     transform: translateY(-5px) scale(1.01);
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(0, 0, 0, 0.6);
     border-color: rgba(255, 255, 255, 0.2);
-    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
+    box-shadow: none;
 }
 
 .project-card-image-section {
     flex: 0 0 40%;
-    background-color: #1a1a1a;
+    background-color: transparent;
+    padding: 1rem;
+    display: flex;
+    align-items: stretch;
+    justify-content: stretch;
+    position: relative;
+}
+
+.project-image-wrapper {
+    flex: 1;
     background-size: cover;
     background-position: center;
+    border-radius: 12px;
     position: relative;
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -37,20 +49,11 @@
     opacity: 0.2;
 }
 
-.project-status-badge {
+.project-status-container {
     position: absolute;
-    top: 1rem;
-    left: 1rem;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(5px);
-    color: #fff;
-    padding: 0.4rem 0.8rem;
-    border-radius: 8px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    top: -8px;
+    right: -8px;
+    z-index: 30;
 }
 
 .project-card-info-section {
@@ -62,32 +65,6 @@
     overflow: hidden;
 }
 
-.project-card-header {
-    display: flex;
-    gap: 0.8rem;
-}
-
-.project-category-tag,
-.project-platform-tag {
-    font-size: 0.7rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    padding: 0.2rem 0.6rem;
-    border-radius: 4px;
-}
-
-.project-category-tag {
-    background: rgba(33, 150, 243, 0.15);
-    color: #2196f3;
-    border: 1px solid rgba(33, 150, 243, 0.3);
-}
-
-.project-platform-tag {
-    background: rgba(255, 255, 255, 0.1);
-    color: #e0e0e0;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
 
 .project-card-title {
     margin: 0;

@@ -1,0 +1,39 @@
+.options-form-hybrid {
+    display: flex;
+    flex-direction: column;
+}
+
+.options-tags-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-top: -0.5rem;
+    margin-bottom: 1rem;
+}
+
+.option-tag-pill {
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #1a1a1a;
+    padding: 0.6rem 1rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.option-tag-pill:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+.option-tag-pill.active {
+    background: rgba(255, 255, 255, 0.25);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+}

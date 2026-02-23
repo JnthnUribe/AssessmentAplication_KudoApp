@@ -29,6 +29,7 @@ export const uploadFile = async (file, uploadPreset, cloudName) => {
         }
     } catch (error) {
         console.error("Error subiendo la imagen:", error);
+
         throw error;
     }
 };

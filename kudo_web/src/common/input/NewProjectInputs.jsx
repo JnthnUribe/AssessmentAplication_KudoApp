@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import InputDesign from './InputDesign';
 import { uploadFile, deleteFile } from '../../features/fileUploader';
 import ProjectCard from '../project/ProjectCard';
+import OptionsForms, { CATEGORY_OPTIONS, PLATFORM_OPTIONS } from './optionsForms.jsx';
 
 const NewProjectInputs = ({ activeSection, formData, onInputChange, onSave, sectionStatuses }) => {
     const [techInputValue, setTechInputValue] = useState('');
@@ -33,6 +34,53 @@ const NewProjectInputs = ({ activeSection, formData, onInputChange, onSave, sect
         }
     };
 
+    const handleFileChange = async (e) => {
+        const files = Array.from(e.target.files);
+        if (files.length === 0) return;
+
+        setIsUploading(true);
+        try {
+            const newItems = [];
+
+            for (const file of files) {
+                const result = await uploadFile(file, uploadPreset, cloudName);
+                newItems.push({
+                    url: result.url,
+                    deleteToken: result.deleteToken
+                });
+            }
+
+            const currentImages = formData.media.images || [];
+            onInputChange('media', null, {
+                ...formData.media,
+                images: [...currentImages, ...newItems]
+            });
+        } catch (error) {
+            alert('Error al subir imágenes: ' + error.message);
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    const handleRemoveImage = async (urlToRemove) => {
+        const imageObj = formData.media.images?.find(img => img.url === urlToRemove);
+        const token = imageObj?.deleteToken;
+        if (token) {
+            try {
+                await deleteFile(token, cloudName);
+            } catch (error) {
+                console.error("Failed to delete image from Cloudinary:", error);
+            }
+        }
+
+        const newImages = formData.media.images.filter(img => img.url !== urlToRemove);
+
+        onInputChange('media', null, {
+            ...formData.media,
+            images: newImages
+        });
+    };
+
     const renderSectionContent = () => {
         switch (activeSection) {
             case 'identidad':
@@ -45,47 +93,22 @@ const NewProjectInputs = ({ activeSection, formData, onInputChange, onSave, sect
                             value={formData.identity.title}
                             onChange={(e) => onInputChange('identity', 'title', e.target.value)}
                         />
-                        <div className="category-hybrid-container">
-                            <InputDesign
-                                label="Categoría del Proyecto"
-                                placeholder="Selecciona o escribe una categoría"
-                                value={formData.identity.category}
-                                onChange={(e) => onInputChange('identity', 'category', e.target.value)}
-                            />
-                            <div className="category-tags-grid small-tags">
-                                {['Software', 'Diseño', 'Marketing', 'Hardware', 'Educación'].map(cat => (
-                                    <button
-                                        key={cat}
-                                        type="button"
-                                        className={`tag - pill ${formData.identity.category === cat ? 'active' : ''} `}
-                                        onClick={() => onInputChange('identity', 'category', cat)}
-                                    >
-                                        {cat}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+                        <OptionsForms
+                            label="Categoría del Proyecto"
+                            placeholder="Selecciona o escribe una categoría"
+                            value={formData.identity.category}
+                            options={CATEGORY_OPTIONS}
+                            onChange={(val) => onInputChange('identity', 'category', val)}
+                        />
 
-                        <div className="category-hybrid-container" style={{ marginTop: '1.5rem' }}>
-                            <InputDesign
-                                label="Plataforma"
-                                placeholder="Selecciona o escribe una plataforma"
-                                value={formData.identity.platform}
-                                onChange={(e) => onInputChange('identity', 'platform', e.target.value)}
-                            />
-                            <div className="category-tags-grid small-tags">
-                                {['Web', 'Móvil', 'Desktop', 'Multiplataforma', 'Otros'].map(plat => (
-                                    <button
-                                        key={plat}
-                                        type="button"
-                                        className={`tag - pill ${formData.identity.platform === plat ? 'active' : ''} `}
-                                        onClick={() => onInputChange('identity', 'platform', plat)}
-                                    >
-                                        {plat}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+                        <OptionsForms
+                            label="Plataforma"
+                            placeholder="Selecciona o escribe una plataforma"
+                            value={formData.identity.platform}
+                            options={PLATFORM_OPTIONS}
+                            onChange={(val) => onInputChange('identity', 'platform', val)}
+                            style={{ marginTop: '1.5rem' }}
+                        />
                     </div>
                 );
             case 'narrativa':
@@ -160,84 +183,44 @@ const NewProjectInputs = ({ activeSection, formData, onInputChange, onSave, sect
                     </div>
                 );
             case 'multimedia':
-                const handleFileChange = async (e) => {
-                    const files = Array.from(e.target.files);
-                    if (files.length === 0) return;
-
-                    setIsUploading(true);
-                    try {
-                        const newUrls = [];
-                        const newTokens = { ...formData.media.deleteTokens };
-
-                        for (const file of files) {
-                            const result = await uploadFile(file, uploadPreset, cloudName);
-                            newUrls.push(result.url);
-                            newTokens[result.url] = result.deleteToken;
-                        }
-
-                        const currentUrls = formData.media.imageUrls || [];
-                        onInputChange('media', 'imageUrls', [...currentUrls, ...newUrls]);
-                        onInputChange('media', 'deleteTokens', newTokens);
-                    } catch (error) {
-                        alert('Error al subir imágenes: ' + error.message);
-                    } finally {
-                        setIsUploading(false);
-                    }
-                };
-
-                const handleRemoveImage = async (urlToRemove) => {
-                    const token = formData.media.deleteTokens?.[urlToRemove];
-                    if (token) {
-                        await deleteFile(token, cloudName);
-                    }
-
-                    const newUrls = formData.media.imageUrls.filter(url => url !== urlToRemove);
-                    const newTokens = { ...formData.media.deleteTokens };
-                    delete newTokens[urlToRemove];
-
-                    onInputChange('media', 'imageUrls', newUrls);
-                    onInputChange('media', 'deleteTokens', newTokens);
-                };
-
                 return (
                     <div className="form-section">
                         <h2>Multimedia</h2>
 
                         <div className="multimedia-container">
-                            <div className="upload-wrapper">
-                                <label className="input-design-label">Imágenes del Proyecto</label>
-                                <div className={`file - upload - area ${isUploading ? 'uploading' : ''} `}>
-                                    <input
-                                        type="file"
-                                        multiple
-                                        accept="image/*"
-                                        onChange={handleFileChange}
-                                        id="file-upload-input"
-                                        disabled={isUploading}
-                                    />
-                                    <label htmlFor="file-upload-input" className="file-upload-label">
-                                        {isUploading ? (
-                                            <div className="upload-spinner"></div>
-                                        ) : (
-                                            <>
-                                                <span className="upload-icon">↑</span>
-                                                <span className="upload-text">Selecciona o arrastra imágenes</span>
-                                            </>
-                                        )}
-                                    </label>
-                                </div>
+                            <label className="input-design-label">Imágenes y Multimedia</label>
+                            <div className={`file-upload-area ${isUploading ? 'uploading' : ''}`}>
+                                <input
+                                    type="file"
+                                    multiple
+                                    accept="image/*"
+                                    onChange={handleFileChange}
+                                    id="file-upload-input"
+                                    disabled={isUploading}
+                                />
+                                <label htmlFor="file-upload-input" className="file-upload-label">
+                                    {isUploading ? (
+                                        <div className="upload-spinner"></div>
+                                    ) : (
+                                        <>
+                                            <span className="upload-icon">📸</span>
+                                            <span className="upload-text">Selecciona o arrastra tus mejores imágenes</span>
+                                            <span className="upload-subtext">JPG, PNG o WEBP (Máx. 5MB)</span>
+                                        </>
+                                    )}
+                                </label>
                             </div>
 
                             <div className="image-preview-grid">
-                                {(formData.media.imageUrls || []).map((url, index) => (
+                                {(formData.media.images || []).map((imgObj, index) => (
                                     <div key={index} className="preview-item">
-                                        <img src={url} alt={`Preview ${index} `} />
+                                        <img src={imgObj.url} alt={`Preview ${index} `} />
                                         <button
                                             type="button"
                                             className="remove-preview-btn"
-                                            onClick={() => handleRemoveImage(url)}
+                                            onClick={() => handleRemoveImage(imgObj.url)}
                                         >
-                                            ×
+                                            &times;
                                         </button>
                                     </div>
                                 ))}
@@ -286,7 +269,7 @@ const NewProjectInputs = ({ activeSection, formData, onInputChange, onSave, sect
 
                             <button
                                 type="button"
-                                className={`btn - publish - project ${!isFormComplete ? 'disabled' : ''} `}
+                                className={`btn-publish-project ${!isFormComplete ? 'disabled' : ''}`}
                                 disabled={!isFormComplete}
                                 onClick={() => onSave('Publicado')}
                             >

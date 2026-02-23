@@ -16,7 +16,7 @@ const NewProjectView = ({ onViewChange }) => {
         narrative: { problem: '', roleDescription: '' },
         techStack: [],
         outcomes: { results: '', learnings: '' },
-        media: { imageUrls: [], videoUrl: '', links: [], deleteTokens: {} }
+        media: { images: [], videoUrl: '', links: [] }
     });
 
     const handleViewChange = (newView) => {
@@ -66,7 +66,7 @@ const NewProjectView = ({ onViewChange }) => {
                     learnings: formData.outcomes.learnings.split('\n').filter(l => l.trim() !== '')
                 },
                 media: {
-                    imageUrls: formData.media.imageUrls,
+                    images: formData.media.images,
                     videoUrl: formData.media.videoUrl,
                     links: formData.media.links || []
                 }
@@ -103,7 +103,7 @@ const NewProjectView = ({ onViewChange }) => {
         statuses.resultados = outFilled === 2 ? 'completed' : outFilled > 0 ? 'partial' : 'empty';
 
         // Multimedia validation
-        const hasImages = formData.media.imageUrls && formData.media.imageUrls.length > 0;
+        const hasImages = formData.media.images && formData.media.images.length > 0;
         const hasVideo = formData.media.videoUrl && formData.media.videoUrl.trim() !== '';
         statuses.multimedia = (hasImages || hasVideo) ? 'completed' : 'empty';
 
@@ -122,12 +122,15 @@ const NewProjectView = ({ onViewChange }) => {
             ></div>
             <video
                 className={`dashboard-bg-video ${isMenuOpen ? 'visible' : ''}`}
-                src={backgroundVideo}
                 autoPlay
                 muted
                 loop
                 playsInline
-            />
+                preload="auto"
+            >
+                <source src={backgroundVideo} type="video/mp4" />
+                Tu navegador no soporta video.
+            </video>
             {!isMenuOpen && (
                 <>
                     <aside className="information-card">
