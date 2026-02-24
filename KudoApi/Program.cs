@@ -10,8 +10,35 @@ Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
+<<<<<<< Updated upstream
 // Add services to the container.
 // Add services to the container.
+=======
+// --- 0. CARGAR .env (para desarrollo local) ---
+var envPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
+if (File.Exists(envPath))
+{
+    foreach (var line in File.ReadAllLines(envPath))
+    {
+        if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#")) continue;
+        var parts = line.Split('=', 2);
+        if (parts.Length == 2)
+            Environment.SetEnvironmentVariable(parts[0].Trim(), parts[1].Trim());
+    }
+}
+
+// --- 1. CONFIGURACIÓN MONGODB ---
+var connectionString = Environment.GetEnvironmentVariable("MongoDbSettings__ConnectionString")
+    ?? "mongodb://localhost:27017";
+var databaseName = Environment.GetEnvironmentVariable("MongoDbSettings__DatabaseName")
+    ?? "KudoDB";
+
+Console.WriteLine($"🔗 Conectando a MongoDB: {(connectionString.Contains("mongodb+srv") ? "Atlas (nube)" : "Local")}");
+Console.WriteLine($"📦 Base de datos: {databaseName}");
+
+var mongoClient = new MongoClient(connectionString);
+var database = mongoClient.GetDatabase(databaseName);
+>>>>>>> Stashed changes
 
 builder.Services.AddCors(options =>
 {
@@ -58,4 +85,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5145";
+app.Urls.Add($"http://0.0.0.0:{port}");
 app.Run();

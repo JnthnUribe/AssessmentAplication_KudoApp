@@ -8,8 +8,26 @@
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
     border: none;
     border-right: 1px solid rgba(0, 0, 0, 0.1);
-    overflow: hidden;
+    overflow-y: auto;
+    overflow-x: hidden;
     flex-shrink: 0;
     box-sizing: border-box;
     z-index: 1000;
+}
+
+.information-card::-webkit-scrollbar {
+    width: 4px;
+}
+
+.information-card::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.information-card::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+
+.information-card::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.2);
 }

@@ -9,8 +9,8 @@ const TopBar = ({ onProfileClick }) => {
                     Kudo
                 </div>
                 <nav className="topbar-nav">
-                    <a href="#home" className="nav-item">Home</a>
-                    <a href="#demuestra" className="nav-item">Comienza aquí</a>
+                    <a href="#" className="nav-item" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Home</a>
+                    <a href="#" className="nav-item" onClick={(e) => { e.preventDefault(); onProfileClick?.(); }}>Comienza aquí</a>
                 </nav>
             </div>
             <div className="topbar-right">
