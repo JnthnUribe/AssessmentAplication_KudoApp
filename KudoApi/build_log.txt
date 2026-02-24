@@ -1,0 +1,10 @@
+﻿Versi├│n de MSBuild 17.8.45+2a7a854c1 para .NET
+  Determining projects to restore...
+  Todos los proyectos est├ín actualizados para la restauraci├│n.
+  KudoApi -> C:\Users\jonat\Documents\KUDO\KudoApi\bin\Debug\net8.0\KudoApi.dll
+
+Compilaci├│n correcta.
+    0 Advertencia(s)
+    0 Errores
+
+Tiempo transcurrido 00:00:01.57

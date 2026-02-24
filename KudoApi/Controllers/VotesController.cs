@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
+using KudoApi.Core.Domain.Entities;
 using KudoApi.Models;
 
 namespace KudoApi.Controllers;
@@ -14,7 +15,7 @@ public class VotesController : ControllerBase
     public VotesController(IMongoDatabase database)
     {
         _votesCollection = database.GetCollection<Vote>("Votes");
-        _projectsCollection = database.GetCollection<Project>("Projects");
+        _projectsCollection = database.GetCollection<Project>("projects");
     }
 
     /// <summary>
@@ -54,10 +55,6 @@ public class VotesController : ControllerBase
         };
 
         await _votesCollection.InsertOneAsync(vote);
-
-        // Actualizar totalVotes del proyecto (+1)
-        var update = Builders<Project>.Update.Inc(p => p.TotalVotes, 1);
-        await _projectsCollection.UpdateOneAsync(projectFilter, update);
 
         return Ok(new { message = "¡Voto registrado exitosamente!", voteId = vote.Id });
     }
