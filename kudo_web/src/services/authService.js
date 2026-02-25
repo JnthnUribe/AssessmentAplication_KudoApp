@@ -25,19 +25,16 @@ export const authService = {
 
     register: async (userData) => {
         try {
-            // Mapping frontend userData to backend User entity structure
+            // New structure matching RegisterRequest DTO
             const payload = {
                 firstName: userData.firstName,
                 firstSurname: userData.firstSurname,
                 email: userData.email,
-                passwordHash: userData.password, // Backend expects passwordHash, sending plain password as requested
-                role: 'creator', // Default role
-                isDeleted: false,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString()
+                password: userData.password,
+                confirmPassword: userData.confirmPassword
             };
 
-            const response = await fetch(API_URL, {
+            const response = await fetch(`${API_URL}/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -46,8 +43,9 @@ export const authService = {
             });
 
             if (!response.ok) {
-                const error = await response.text();
-                throw new Error(error || 'Error en el registro');
+                const errorData = await response.json().catch(() => ({}));
+                const errorMessage = errorData.message || errorData.errors ? Object.values(errorData.errors).flat().join(', ') : 'Error en el registro';
+                throw new Error(errorMessage || 'Error en el registro');
             }
 
             return await response.json();

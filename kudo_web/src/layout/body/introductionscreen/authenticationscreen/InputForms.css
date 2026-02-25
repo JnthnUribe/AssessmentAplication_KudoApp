@@ -4,13 +4,32 @@
     gap: 1.5rem;
 }
 
+.auth-message {
+    padding: 0.8rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    text-align: center;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.auth-message.error {
+    background-color: rgba(220, 38, 38, 0.2);
+    border: 1px solid rgba(220, 38, 38, 0.4);
+    color: #ff8a8a;
+}
+
+.auth-message.success {
+    background-color: rgba(22, 163, 74, 0.2);
+    border: 1px solid rgba(22, 163, 74, 0.4);
+    color: #86efac;
+}
+
 .form-group {
     display: flex;
     flex-direction: column;
-    gap: 0.8rem;
-    /* More space between label/input if using labels */
+    gap: 0.5rem;
     margin-bottom: 0.5rem;
-    /* Add some space between individual form groups */
 }
 
 

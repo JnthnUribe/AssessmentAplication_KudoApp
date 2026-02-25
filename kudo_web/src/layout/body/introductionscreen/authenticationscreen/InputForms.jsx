@@ -10,6 +10,7 @@ const InputForms = ({ isRegistering, toggleMode }) => {
     const [firstSurname, setFirstSurname] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
     const navigate = useNavigate();
 
     const handleLogin = async (e) => {
@@ -28,23 +29,69 @@ const InputForms = ({ isRegistering, toggleMode }) => {
     const handleRegister = async (e) => {
         e.preventDefault();
         setError('');
-        if (password !== confirmPassword) {
+
+        // 1. Sanitization: Trim
+        const cleanFirstName = firstName.trim();
+        const cleanFirstSurname = firstSurname.trim();
+        const cleanEmail = email.trim().toLowerCase(); // Email to lowercase
+        const cleanPassword = password;
+        const cleanConfirmPassword = confirmPassword;
+
+        // 2. Validation: Campos Obligatorios
+        if (!cleanFirstName || !cleanFirstSurname || !cleanEmail || !cleanPassword || !cleanConfirmPassword) {
+            setError('Todos los campos son obligatorios');
+            return;
+        }
+
+        // 3. Validation: Email Formato (Regex)
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(cleanEmail)) {
+            setError('Formato de correo electrónico no válido');
+            return;
+        }
+
+        // 4. Validation: Longitud mínima (8+)
+        if (cleanPassword.length < 8) {
+            setError('La contraseña debe tener al menos 8 caracteres');
+            return;
+        }
+
+        // 5. Validation: Requisito de complejidad (Mayúsculas, números, símbolos)
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordRegex.test(cleanPassword)) {
+            setError('La contraseña debe contener al menos una mayúscula, una minúscula, un número y un carácter especial');
+            return;
+        }
+
+        // 6. Validation: Comparación de igualdad
+        if (cleanPassword !== cleanConfirmPassword) {
             setError('Las contraseñas no coinciden');
             return;
         }
 
         try {
             const userData = {
-                firstName,
-                firstSurname,
-                email,
-                password
+                firstName: cleanFirstName,
+                firstSurname: cleanFirstSurname,
+                email: cleanEmail,
+                password: cleanPassword,
+                confirmPassword: cleanConfirmPassword
             };
             const user = await authService.register(userData);
             console.log('Registration successful:', user);
-            localStorage.setItem('user', JSON.stringify(user));
-            alert('Registro exitoso! Por favor inicia sesión.');
-            if (toggleMode) toggleMode(); // Switch back to login after successful register
+            setSuccess('¡Registro exitoso! Por favor inicia sesión.');
+
+            // Clear only name and confirmation fields, preserve email and password for login
+            setConfirmPassword('');
+            setFirstName('');
+            setFirstSurname('');
+
+            // Transition to login faster (1s)
+            setTimeout(() => {
+                setSuccess('');
+                if (toggleMode) toggleMode();
+            }, 1000);
+
         } catch (err) {
             setError(err.message || 'Error al registrarse');
         }
@@ -52,6 +99,7 @@ const InputForms = ({ isRegistering, toggleMode }) => {
 
     const handleToggle = () => {
         setError('');
+        setSuccess('');
         setEmail('');
         setPassword('');
         setConfirmPassword('');
@@ -62,7 +110,8 @@ const InputForms = ({ isRegistering, toggleMode }) => {
 
     return (
         <>
-            {error && <div style={{ color: 'red', marginBottom: '1rem', textAlign: 'center' }}>{error}</div>}
+            {error && <div className="auth-message error">{error}</div>}
+            {success && <div className="auth-message success">{success}</div>}
 
             {!isRegistering ? (
                 /* LOGIN FORM */
@@ -74,7 +123,7 @@ const InputForms = ({ isRegistering, toggleMode }) => {
                                 id="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                placeholder="Correo Electrónico"
+                                placeholder="Correo: usuario@correo.com"
                                 required
                             />
                         </div>
@@ -85,7 +134,7 @@ const InputForms = ({ isRegistering, toggleMode }) => {
                                 id="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                placeholder="Contraseña"
+                                placeholder="Contraseña (mín. 8 caracteres)"
                                 required
                             />
                         </div>
@@ -108,7 +157,7 @@ const InputForms = ({ isRegistering, toggleMode }) => {
                                     id="firstName"
                                     value={firstName}
                                     onChange={(e) => setFirstName(e.target.value)}
-                                    placeholder="Nombre"
+                                    placeholder="Nombre: Juan"
                                     required
                                 />
                             </div>
@@ -118,7 +167,7 @@ const InputForms = ({ isRegistering, toggleMode }) => {
                                     id="firstSurname"
                                     value={firstSurname}
                                     onChange={(e) => setFirstSurname(e.target.value)}
-                                    placeholder="Apellido"
+                                    placeholder="Apellido: Pérez"
                                     required
                                 />
                             </div>
@@ -130,7 +179,7 @@ const InputForms = ({ isRegistering, toggleMode }) => {
                                 id="register-email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                placeholder="Correo Electrónico"
+                                placeholder="Email: juan.perez@ejemplo.com"
                                 required
                             />
                         </div>
@@ -141,7 +190,7 @@ const InputForms = ({ isRegistering, toggleMode }) => {
                                 id="register-password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                placeholder="Contraseña"
+                                placeholder="Contraseña: Segura123!"
                                 required
                             />
                         </div>
@@ -152,7 +201,7 @@ const InputForms = ({ isRegistering, toggleMode }) => {
                                 id="confirm-password"
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
-                                placeholder="Confirmar Contraseña"
+                                placeholder="Repetir Contraseña: Segura123!"
                                 required
                             />
                         </div>

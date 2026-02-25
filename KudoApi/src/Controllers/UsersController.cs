@@ -1,3 +1,4 @@
+using KudoApi.Core.Application.DTOs;
 using KudoApi.Core.Application.Services;
 using KudoApi.Core.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -24,6 +25,20 @@ namespace KudoApi.Controllers
             var user = await _userService.GetByIdAsync(id);
             if (user == null) return NotFound();
             return user;
+        }
+
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+        {
+            try
+            {
+                var user = await _userService.RegisterAsync(request);
+                return CreatedAtAction(nameof(Get), new { id = user.Id }, user);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPost]

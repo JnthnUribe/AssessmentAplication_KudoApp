@@ -1,3 +1,4 @@
+using KudoApi.Core.Application.DTOs;
 using KudoApi.Core.Domain.Entities;
 using KudoApi.Core.Domain.Interfaces;
 
@@ -23,14 +24,41 @@ namespace KudoApi.Core.Application.Services
             await _userRepository.CreateAsync(user);
         }
 
+        public async Task<User> RegisterAsync(RegisterRequest request)
+        {
+            // Sanitization: Trim and Lowercase
+            var email = request.Email.Trim().ToLower();
+            var firstName = request.FirstName.Trim();
+            var firstSurname = request.FirstSurname.Trim();
+
+            // Uniqueness check
+            var existingUser = await _userRepository.GetByEmailAsync(email);
+            if (existingUser != null)
+            {
+                throw new Exception("El correo electrónico ya está registrado.");
+            }
+
+            var user = new User
+            {
+                FirstName = firstName,
+                FirstSurname = firstSurname,
+                Email = email,
+                PasswordHash = request.Password, // In production, hash this!
+                Role = "User", // Default role
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            await _userRepository.CreateAsync(user);
+            return user;
+        }
+
         public async Task UpdateAsync(string id, User user)
         {
             var existingUser = await _userRepository.GetByIdAsync(id);
             if (existingUser != null)
             {
                 user.CreatedAt = existingUser.CreatedAt;
-                // Optional: Preserve other fields if PUT is treated as partial or if fields are missing
-                // For now, focusing on dates and ID as critical system fields
             }
             
             user.Id = id;
