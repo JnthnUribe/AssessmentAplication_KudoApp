@@ -1,11 +1,18 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 import '../models/project.dart';
 
 /// Servicio para comunicación con la API de KUDO
 class ApiService {
-  // OJO: Como es Web App, localhost funciona perfecto.
-  static const String baseUrl = 'http://localhost:5145/api';
+  // PWA (web) usa localhost, dispositivo físico usa IP de red local
+  static String get baseUrl {
+    if (kIsWeb) {
+      return 'http://localhost:5145/api';
+    }
+    // Para dispositivo físico Android, cambiar a tu IP local
+    return 'http://10.0.2.2:5145/api';
+  }
 
   /// Obtiene la lista de todos los proyectos desde la API
   Future<List<Project>> fetchProjects() async {
@@ -37,6 +44,68 @@ class ApiService {
       return Project.fromJson(jsonDecode(response.body));
     } else {
       throw Exception('Proyecto no encontrado');
+    }
+  }
+
+  /// Envía un voto real al servidor
+  /// Retorna: {success: bool, message: String, alreadyVoted: bool}
+  Future<Map<String, dynamic>> submitVote({
+    required String projectId,
+    required String voterId,
+    required int score,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/votes'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'projectId': projectId,
+          'voterId': voterId,
+          'score': score,
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'message': data['message'] ?? '¡Voto registrado!',
+        };
+      } else if (response.statusCode == 409) {
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Ya votaste',
+          'alreadyVoted': true,
+        };
+      } else {
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Error al votar',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Error de conexión: $e'};
+    }
+  }
+
+  /// Verifica si un voterId ya votó por un proyecto
+  Future<Map<String, dynamic>> checkVote({
+    required String projectId,
+    required String voterId,
+  }) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/votes/check?projectId=$projectId&voterId=$voterId'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+      return {'hasVoted': false, 'score': 0};
+    } catch (e) {
+      return {'hasVoted': false, 'score': 0};
     }
   }
 }

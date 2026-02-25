@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/project.dart';
 import '../services/api_service.dart';
 
-/// Pantalla de Ranking - Muestra proyectos ordenados por votos
+/// Pantalla de Ranking - Muestra proyectos ordenados por votos con animaciones
 class RankingScreen extends StatefulWidget {
   const RankingScreen({super.key});
 
@@ -11,10 +11,12 @@ class RankingScreen extends StatefulWidget {
   State<RankingScreen> createState() => _RankingScreenState();
 }
 
-class _RankingScreenState extends State<RankingScreen> {
-  // Colores del Design System
+class _RankingScreenState extends State<RankingScreen>
+    with TickerProviderStateMixin {
+  // Design System
   static const Color backgroundColor = Color(0xFF0B1221);
-  static const Color cardColor = Color(0xFF1E293B);
+  static const Color cardColor = Color(0xFF111827);
+  static const Color surfaceColor = Color(0xFF1E293B);
   static const Color accentColor = Color(0xFF3B82F6);
 
   final ApiService _apiService = ApiService();
@@ -22,12 +24,16 @@ class _RankingScreenState extends State<RankingScreen> {
   bool _isLoading = true;
   String? _error;
   Timer? _pollTimer;
+  late AnimationController _headerAnim;
 
   @override
   void initState() {
     super.initState();
+    _headerAnim = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    )..forward();
     _loadRanking();
-    // Poll every 10 seconds
     _pollTimer = Timer.periodic(const Duration(seconds: 10), (_) {
       _loadRanking(silent: true);
     });
@@ -42,9 +48,7 @@ class _RankingScreenState extends State<RankingScreen> {
     }
 
     try {
-      // Por ahora usamos fetchProjects ya que no hay endpoint de ranking
       final projects = await _apiService.fetchProjects();
-      // Ordenar por totalVotes descendente
       projects.sort((a, b) => b.totalVotes.compareTo(a.totalVotes));
       setState(() {
         _ranking = projects;
@@ -64,52 +68,8 @@ class _RankingScreenState extends State<RankingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backgroundColor,
-      appBar: AppBar(
-        backgroundColor: backgroundColor,
-        elevation: 0,
-        title: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.emoji_events, color: Color(0xFFFBBF24)),
-            SizedBox(width: 8),
-            Text(
-              'Ranking',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
-        centerTitle: true,
-        actions: [
-          // Live indicator
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: const Color(0xFF10B981).withAlpha(51),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Row(
-              children: [
-                Icon(Icons.circle, size: 8, color: Color(0xFF10B981)),
-                SizedBox(width: 6),
-                Text(
-                  'LIVE',
-                  style: TextStyle(
-                    color: Color(0xFF10B981),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: accentColor))
+          ? _buildLoading()
           : _error != null
           ? _buildErrorState()
           : _ranking.isEmpty
@@ -117,17 +77,321 @@ class _RankingScreenState extends State<RankingScreen> {
           : RefreshIndicator(
               onRefresh: _loadRanking,
               color: accentColor,
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: _ranking.length,
-                itemBuilder: (context, index) {
-                  if (index < 3) {
-                    return _buildTopThreeCard(_ranking[index], index + 1);
-                  }
-                  return _buildRankingItem(_ranking[index], index + 1);
-                },
+              child: CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(child: _buildHeader()),
+                  if (_ranking.length >= 3)
+                    SliverToBoxAdapter(child: _buildPodium()),
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final rank = _ranking.length >= 3
+                              ? index + 4
+                              : index + 1;
+                          final item = _ranking.length >= 3
+                              ? (index + 3 < _ranking.length
+                                    ? _ranking[index + 3]
+                                    : null)
+                              : _ranking[index];
+                          if (item == null) return const SizedBox();
+                          return _buildRankingItem(item, rank, index);
+                        },
+                        childCount: _ranking.length >= 3
+                            ? (_ranking.length - 3).clamp(0, _ranking.length)
+                            : _ranking.length,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return FadeTransition(
+      opacity: CurvedAnimation(parent: _headerAnim, curve: Curves.easeOut),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 60, 20, 8),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFFBBF24), Color(0xFFF59E0B)],
+                ),
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFFBBF24).withAlpha(50),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.emoji_events_rounded,
+                color: Colors.white,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Ranking',
+                    style: TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Text(
+                    'Los proyectos más votados',
+                    style: TextStyle(fontSize: 13, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+            // Live indicator
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFF10B981).withAlpha(20),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: const Color(0xFF10B981).withAlpha(40),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 7,
+                    height: 7,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF10B981),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  const Text(
+                    'LIVE',
+                    style: TextStyle(
+                      color: Color(0xFF10B981),
+                      fontWeight: FontWeight.w700,
+                      fontSize: 11,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPodium() {
+    final maxVotes = _ranking.isNotEmpty ? _ranking[0].totalVotes : 1;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          // 2nd place
+          Expanded(child: _buildPodiumItem(_ranking[1], 2, maxVotes, 120)),
+          const SizedBox(width: 8),
+          // 1st place
+          Expanded(child: _buildPodiumItem(_ranking[0], 1, maxVotes, 160)),
+          const SizedBox(width: 8),
+          // 3rd place
+          Expanded(child: _buildPodiumItem(_ranking[2], 3, maxVotes, 100)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPodiumItem(
+    Project project,
+    int rank,
+    int maxVotes,
+    double height,
+  ) {
+    final colors = {
+      1: const Color(0xFFFFD700),
+      2: const Color(0xFFC0C0C0),
+      3: const Color(0xFFCD7F32),
+    };
+    final medals = {1: '🥇', 2: '🥈', 3: '🥉'};
+    final color = colors[rank]!;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Medal
+        Text(medals[rank]!, style: const TextStyle(fontSize: 28)),
+        const SizedBox(height: 6),
+        // Title
+        Text(
+          project.title,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          '${project.totalVotes} votos',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: color,
+          ),
+        ),
+        const SizedBox(height: 8),
+        // Podium bar
+        Container(
+          height: height,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [color.withAlpha(80), color.withAlpha(20)],
+            ),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+            border: Border.all(color: color.withAlpha(60)),
+          ),
+          child: Center(
+            child: Text(
+              '#$rank',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w900,
+                color: color.withAlpha(80),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRankingItem(Project project, int rank, int index) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: Duration(milliseconds: 400 + index * 60),
+      curve: Curves.easeOut,
+      builder: (context, value, child) {
+        return Opacity(
+          opacity: value,
+          child: Transform.translate(
+            offset: Offset(0, 20 * (1 - value)),
+            child: child,
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: cardColor,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.white.withAlpha(6)),
+        ),
+        child: Row(
+          children: [
+            // Rank number
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: surfaceColor,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Center(
+                child: Text(
+                  '#$rank',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: Colors.grey.shade500,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 14),
+            // Project info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    project.title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 15,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    project.category,
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+            // Votes
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: accentColor.withAlpha(15),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.how_to_vote_rounded,
+                    color: accentColor,
+                    size: 15,
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    '${project.totalVotes}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoading() {
+    return Center(
+      child: CircularProgressIndicator(
+        color: accentColor,
+        strokeWidth: 3,
+        backgroundColor: accentColor.withAlpha(30),
+      ),
     );
   }
 
@@ -136,18 +400,34 @@ class _RankingScreenState extends State<RankingScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.cloud_off, size: 64, color: Colors.grey),
-          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.red.withAlpha(15),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.cloud_off_rounded,
+              size: 44,
+              color: Colors.redAccent,
+            ),
+          ),
+          const SizedBox(height: 20),
           const Text(
             'No se pudo cargar el ranking',
-            style: TextStyle(fontSize: 18, color: Colors.grey),
+            style: TextStyle(fontSize: 18, color: Colors.white),
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: _loadRanking,
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh_rounded, size: 18),
             label: const Text('Reintentar'),
-            style: ElevatedButton.styleFrom(backgroundColor: accentColor),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: accentColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
           ),
         ],
       ),
@@ -159,13 +439,13 @@ class _RankingScreenState extends State<RankingScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.leaderboard_outlined, size: 64, color: Colors.grey),
+          Icon(Icons.leaderboard_outlined, size: 56, color: Colors.grey),
           SizedBox(height: 16),
           Text(
             'No hay rankings aún',
             style: TextStyle(fontSize: 18, color: Colors.grey),
           ),
-          SizedBox(height: 8),
+          SizedBox(height: 6),
           Text(
             '¡Sé el primero en votar!',
             style: TextStyle(color: Colors.grey),
@@ -175,173 +455,10 @@ class _RankingScreenState extends State<RankingScreen> {
     );
   }
 
-  Widget _buildTopThreeCard(Project project, int rank) {
-    final colors = {
-      1: const Color(0xFFFFD700), // Gold
-      2: const Color(0xFFC0C0C0), // Silver
-      3: const Color(0xFFCD7F32), // Bronze
-    };
-
-    final icons = {1: '🥇', 2: '🥈', 3: '🥉'};
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [colors[rank]!.withAlpha(51), cardColor],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: colors[rank]!.withAlpha(127), width: 2),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Row(
-          children: [
-            // Rank Badge
-            Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                color: colors[rank]!.withAlpha(51),
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: Text(icons[rank]!, style: const TextStyle(fontSize: 32)),
-              ),
-            ),
-            const SizedBox(width: 16),
-
-            // Project Info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    project.title,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    project.category,
-                    style: TextStyle(
-                      color: colors[rank],
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Votes
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.how_to_vote, color: colors[rank], size: 24),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${project.totalVotes}',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: colors[rank],
-                      ),
-                    ),
-                  ],
-                ),
-                const Text(
-                  'votos',
-                  style: TextStyle(color: Colors.grey, fontSize: 12),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRankingItem(Project project, int rank) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          // Rank number
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: const Color(0xFF374151),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Center(
-              child: Text(
-                '#$rank',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-
-          // Project info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  project.title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
-                    color: Colors.white,
-                  ),
-                ),
-                Text(
-                  project.category,
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
-                ),
-              ],
-            ),
-          ),
-
-          // Votes
-          Row(
-            children: [
-              const Icon(Icons.how_to_vote, color: accentColor, size: 18),
-              const SizedBox(width: 4),
-              Text(
-                '${project.totalVotes}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   void dispose() {
     _pollTimer?.cancel();
+    _headerAnim.dispose();
     super.dispose();
   }
 }

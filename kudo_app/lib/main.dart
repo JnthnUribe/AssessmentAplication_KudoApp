@@ -93,22 +93,42 @@ class _MainNavigationState extends State<MainNavigation> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _screens[_selectedIndex],
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        switchInCurve: Curves.easeInOut,
+        switchOutCurve: Curves.easeInOut,
+        transitionBuilder: (child, animation) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+        child: KeyedSubtree(
+          key: ValueKey<int>(_selectedIndex),
+          child: _screens[_selectedIndex],
+        ),
+      ),
       bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFF111827),
+        decoration: BoxDecoration(
+          color: const Color(0xFF111827),
+          border: Border(
+            top: BorderSide(
+              color: const Color(0xFF3B82F6).withAlpha(30),
+              width: 1,
+            ),
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black26,
-              blurRadius: 8,
-              offset: Offset(0, -2),
+              color: const Color(0xFF3B82F6).withAlpha(15),
+              blurRadius: 20,
+              offset: const Offset(0, -4),
             ),
           ],
         ),
         child: NavigationBar(
-          backgroundColor: const Color(0xFF111827),
-          indicatorColor: const Color(0xFF3B82F6).withAlpha(51),
+          backgroundColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
+          indicatorColor: const Color(0xFF3B82F6).withAlpha(35),
           selectedIndex: _selectedIndex,
+          animationDuration: const Duration(milliseconds: 400),
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
           onDestinationSelected: (index) {
             setState(() {
               _selectedIndex = index;
@@ -116,19 +136,31 @@ class _MainNavigationState extends State<MainNavigation> {
           },
           destinations: const [
             NavigationDestination(
-              icon: Icon(Icons.folder_outlined),
-              selectedIcon: Icon(Icons.folder, color: Color(0xFF3B82F6)),
-              label: 'Projects',
+              icon: Icon(Icons.rocket_launch_outlined, size: 22),
+              selectedIcon: Icon(
+                Icons.rocket_launch,
+                color: Color(0xFF3B82F6),
+                size: 24,
+              ),
+              label: 'Proyectos',
             ),
             NavigationDestination(
-              icon: Icon(Icons.leaderboard_outlined),
-              selectedIcon: Icon(Icons.leaderboard, color: Color(0xFF3B82F6)),
+              icon: Icon(Icons.emoji_events_outlined, size: 22),
+              selectedIcon: Icon(
+                Icons.emoji_events,
+                color: Color(0xFF3B82F6),
+                size: 24,
+              ),
               label: 'Ranking',
             ),
             NavigationDestination(
-              icon: Icon(Icons.person_outline),
-              selectedIcon: Icon(Icons.person, color: Color(0xFF3B82F6)),
-              label: 'Profile',
+              icon: Icon(Icons.person_outline_rounded, size: 22),
+              selectedIcon: Icon(
+                Icons.person_rounded,
+                color: Color(0xFF3B82F6),
+                size: 24,
+              ),
+              label: 'Perfil',
             ),
           ],
         ),

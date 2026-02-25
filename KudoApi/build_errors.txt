@@ -1,0 +1,14 @@
+﻿Versi├│n de MSBuild 17.8.45+2a7a854c1 para .NET
+  Determining projects to restore...
+  Todos los proyectos est├ín actualizados para la restauraci├│n.
+C:\Users\jonat\Documents\KUDO\KudoApi\Controllers\SeedController.cs(11,39): error CS0246: El nombre del tipo o del espacio de nombres 'Project' no se encontr├│ (┬┐falta una directiva using o una referencia de ensamblado?) [C:\Users\jonat\Documents\KUDO\KudoApi\KudoApi.csproj]
+C:\Users\jonat\Documents\KUDO\KudoApi\Controllers\VotesController.cs(12,39): error CS0246: El nombre del tipo o del espacio de nombres 'Project' no se encontr├│ (┬┐falta una directiva using o una referencia de ensamblado?) [C:\Users\jonat\Documents\KUDO\KudoApi\KudoApi.csproj]
+
+ERROR al compilar.
+
+C:\Users\jonat\Documents\KUDO\KudoApi\Controllers\SeedController.cs(11,39): error CS0246: El nombre del tipo o del espacio de nombres 'Project' no se encontr├│ (┬┐falta una directiva using o una referencia de ensamblado?) [C:\Users\jonat\Documents\KUDO\KudoApi\KudoApi.csproj]
+C:\Users\jonat\Documents\KUDO\KudoApi\Controllers\VotesController.cs(12,39): error CS0246: El nombre del tipo o del espacio de nombres 'Project' no se encontr├│ (┬┐falta una directiva using o una referencia de ensamblado?) [C:\Users\jonat\Documents\KUDO\KudoApi\KudoApi.csproj]
+    0 Advertencia(s)
+    2 Errores
+
+Tiempo transcurrido 00:00:00.97

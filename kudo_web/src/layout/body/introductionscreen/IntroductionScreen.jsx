@@ -19,7 +19,7 @@ const IntroductionScreen = () => {
                     <h1 className="hero-title">El mundo necesita ver lo que eres capaz de crear</h1>
                 </div>
 
-                <div className="explore-label">
+                <div className="explore-label" onClick={() => setShowAuth(true)}>
                     <span>Explorar</span>
                 </div>
             </div>

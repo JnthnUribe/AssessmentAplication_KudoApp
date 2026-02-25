@@ -13,7 +13,7 @@
     background-repeat: no-repeat;
     opacity: 0;
     visibility: hidden;
-    transition: all 0.3s ease;
+    transition: opacity 0.35s ease, visibility 0.35s ease;
 }
 
 .specific-project-overlay::before {
@@ -41,9 +41,9 @@
     gap: 3rem;
     align-items: center;
     justify-content: center;
-    transform: translateY(30px);
+    transform: translateY(20px);
     opacity: 0;
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
 }
 
 .specific-project-container.open {
@@ -676,10 +676,16 @@
 }
 
 @media (max-width: 1200px) {
+    .specific-project-overlay.open {
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
     .specific-project-container {
         flex-direction: column;
         height: auto;
-        overflow-y: auto;
+        max-height: none;
+        overflow-y: visible;
         padding: 2rem 0;
     }
 
