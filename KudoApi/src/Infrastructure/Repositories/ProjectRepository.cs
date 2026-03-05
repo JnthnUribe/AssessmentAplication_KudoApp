@@ -43,5 +43,10 @@ namespace KudoApi.Infrastructure.Repositories
         {
             await _context.Projects.DeleteOneAsync(p => p.Id == id);
         }
+
+        public async Task DeleteByCreatorIdAsync(string creatorId)
+        {
+            await _context.Projects.DeleteManyAsync(p => p.CreatorId == creatorId);
+        }
     }
 }

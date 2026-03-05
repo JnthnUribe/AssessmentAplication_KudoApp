@@ -10,5 +10,6 @@ namespace KudoApi.Core.Domain.Interfaces
         Task CreateAsync(Project project);
         Task UpdateAsync(string id, Project project);
         Task DeleteAsync(string id);
+        Task DeleteByCreatorIdAsync(string creatorId);
     }
 }

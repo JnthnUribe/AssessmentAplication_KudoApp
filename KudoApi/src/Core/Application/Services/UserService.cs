@@ -7,10 +7,12 @@ namespace KudoApi.Core.Application.Services
     public class UserService
     {
         private readonly IUserRepository _userRepository;
+        private readonly ProjectService _projectService;
 
-        public UserService(IUserRepository userRepository)
+        public UserService(IUserRepository userRepository, ProjectService projectService)
         {
             _userRepository = userRepository;
+            _projectService = projectService;
         }
 
         public async Task<List<User>> GetAllAsync() => await _userRepository.GetAllAsync();
@@ -66,6 +68,13 @@ namespace KudoApi.Core.Application.Services
             await _userRepository.UpdateAsync(id, user);
         }
 
-        public async Task DeleteAsync(string id) => await _userRepository.DeleteAsync(id);
+        public async Task DeleteAsync(string id)
+        {
+            // 1. Delete all projects created by this user in cascade
+            await _projectService.DeleteByCreatorIdAsync(id);
+            
+            // 2. Delete the user
+            await _userRepository.DeleteAsync(id);
+        }
     }
 }

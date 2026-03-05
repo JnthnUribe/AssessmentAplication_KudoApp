@@ -67,6 +67,8 @@ builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 
 // Services
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<CloudinaryService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ProjectService>();
 builder.Services.AddScoped<ReviewService>();

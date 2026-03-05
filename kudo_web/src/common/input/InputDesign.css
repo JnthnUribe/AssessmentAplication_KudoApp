@@ -79,5 +79,6 @@
 
 textarea.input-design-field {
     min-height: 150px;
-    resize: vertical;
+    resize: none;
+    overflow-y: hidden;
 }
