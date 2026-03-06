@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:5145/api/Users';
+const API_URL = 'https://assessmentaplication-kudoapp.onrender.com/api/Users';
 
 export const authService = {
     login: async (email, password) => {

@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:5145/api/Reviews';
+const API_URL = 'https://assessmentaplication-kudoapp.onrender.com/api/Reviews';
 
 export const reviewService = {
     getByProjectId: async (projectId) => {

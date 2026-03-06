@@ -5,21 +5,19 @@ import '../models/project.dart';
 
 /// Servicio para comunicación con la API de KUDO
 class ApiService {
-  // TODO: Reemplaza con tu URL real de Render después del deploy
-  static const String _renderUrl = 'https://kudoapi.onrender.com/api';
+  // URL de producción en Render
+  static const String _renderUrl =
+      'https://assessmentaplication-kudoapp.onrender.com/api';
   static const String _localUrl = 'http://localhost:5145/api';
   static const String _emulatorUrl = 'http://10.0.2.2:5145/api';
 
-  // En release usa Render, en debug usa localhost
   static String get baseUrl {
-    // Para cambiar a producción, descomenta la siguiente línea:
-    // return _renderUrl;
+    // Producción: Render
+    return _renderUrl;
 
-    if (kIsWeb) {
-      return _localUrl;
-    }
-    // Para dispositivo físico Android (emulador)
-    return _emulatorUrl;
+    // Para desarrollo local, comenta la línea de arriba y descomenta:
+    // if (kIsWeb) return _localUrl;
+    // return _emulatorUrl;
   }
 
   /// Obtiene la lista de todos los proyectos desde la API
