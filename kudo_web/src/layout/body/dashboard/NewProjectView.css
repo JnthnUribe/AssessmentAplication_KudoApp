@@ -237,21 +237,25 @@
 
 .file-upload-area {
     position: relative;
-    height: 160px;
-    background: rgba(255, 255, 255, 0.4);
+    height: 55px;
+    /* Same height as standard inputs */
+    background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(15px);
-    border: 2px dashed rgba(255, 255, 255, 0.2);
-    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
+    /* Left aligned like text inputs */
+    padding: 0 1.2rem;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
 }
 
 .file-upload-area:hover:not(.uploading) {
-    background: rgba(255, 255, 255, 0.5);
-    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.4);
     transform: translateY(-2px);
 }
 
@@ -267,33 +271,23 @@
     opacity: 0;
     cursor: pointer;
     z-index: 2;
+    left: 0;
+    top: 0;
 }
 
 .file-upload-label {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    color: #1a1a1a;
+    gap: 0.8rem;
+    color: rgba(255, 255, 255, 0.5);
+    /* Placeholder-like color */
     pointer-events: none;
-    text-align: center;
+    text-align: left;
     width: 100%;
-}
-
-.upload-icon {
-    font-size: 2.5rem;
-    margin-bottom: 0.5rem;
-}
-
-.upload-text {
-    font-weight: 700;
     font-size: 1.1rem;
 }
 
-.upload-subtext {
-    font-size: 0.8rem;
-    opacity: 0.6;
+.upload-text {
     font-weight: 500;
 }
 
@@ -478,6 +472,80 @@
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+.section-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-back-step {
+    padding: 1rem 2.2rem;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-back-step:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateX(-5px);
+}
+
+.btn-back-step .arrow {
+    font-size: 1.3rem;
+    transition: transform 0.3s ease;
+}
+
+.btn-back-step:hover .arrow {
+    transform: translateX(-3px);
+}
+
+.btn-next-step {
+    margin-left: auto;
+    /* Pushes the next button to the right if it's the only one */
+    padding: 1rem 2.2rem;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50px;
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-next-step:hover {
+    background: #fff;
+    color: #000;
+    transform: translateX(5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.btn-next-step .arrow {
+    font-size: 1.3rem;
+    transition: transform 0.3s ease;
+}
+
+.btn-next-step:hover .arrow {
+    transform: translateX(3px);
 }
 
 .dashboard-content-area {

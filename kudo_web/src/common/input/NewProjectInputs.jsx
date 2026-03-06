@@ -4,9 +4,37 @@ import { uploadFile, deleteFile } from '../../features/fileUploader';
 import ProjectCard from '../project/ProjectCard';
 import OptionsForms, { CATEGORY_OPTIONS, PLATFORM_OPTIONS } from './optionsForms.jsx';
 
-const NewProjectInputs = ({ activeSection, formData, onInputChange, onSave, sectionStatuses }) => {
+const NewProjectInputs = ({ activeSection, onSectionChange, formData, onInputChange, onSave, sectionStatuses }) => {
     const [techInputValue, setTechInputValue] = useState('');
     const [isUploading, setIsUploading] = useState(false);
+
+    const SECTION_SEQUENCE = [
+        'identidad',
+        'narrativa',
+        'tecnologia',
+        'resultados',
+        'multimedia',
+        'revision'
+    ];
+
+    const handleNext = () => {
+        const currentIndex = SECTION_SEQUENCE.indexOf(activeSection);
+        if (currentIndex !== -1 && currentIndex < SECTION_SEQUENCE.length - 1) {
+            onSectionChange(SECTION_SEQUENCE[currentIndex + 1]);
+            // Scroll to top of main content when changing section
+            const mainContent = document.querySelector('.dashboard-main-content');
+            if (mainContent) mainContent.scrollTop = 0;
+        }
+    };
+
+    const handleBack = () => {
+        const currentIndex = SECTION_SEQUENCE.indexOf(activeSection);
+        if (currentIndex > 0) {
+            onSectionChange(SECTION_SEQUENCE[currentIndex - 1]);
+            const mainContent = document.querySelector('.dashboard-main-content');
+            if (mainContent) mainContent.scrollTop = 0;
+        }
+    };
 
     const cloudName = 'dufvodhuw';
     const uploadPreset = 'kudofiles';
@@ -14,10 +42,25 @@ const NewProjectInputs = ({ activeSection, formData, onInputChange, onSave, sect
     const handleAddTech = (e) => {
         if (e) e.preventDefault();
         if (techInputValue.trim()) {
+            // Split by comma and handle multiple entries
+            const newEntries = techInputValue
+                .split(',')
+                .map(item => item.trim())
+                .filter(item => item !== '');
+
             const currentStack = formData.techStack || [];
-            if (!currentStack.includes(techInputValue.trim())) {
-                const newStack = [...currentStack, techInputValue.trim()];
-                onInputChange('techStack', null, newStack);
+            let updatedStack = [...currentStack];
+            let changed = false;
+
+            newEntries.forEach(entry => {
+                if (!updatedStack.includes(entry)) {
+                    updatedStack.push(entry);
+                    changed = true;
+                }
+            });
+
+            if (changed) {
+                onInputChange('techStack', null, updatedStack);
             }
             setTechInputValue('');
         }
@@ -109,6 +152,12 @@ const NewProjectInputs = ({ activeSection, formData, onInputChange, onSave, sect
                             onChange={(val) => onInputChange('identity', 'platform', val)}
                             style={{ marginTop: '1.5rem' }}
                         />
+
+                        <div className="section-footer">
+                            <button type="button" className="btn-next-step" onClick={handleNext}>
+                                Siguiente: Narrativa <span className="arrow">→</span>
+                            </button>
+                        </div>
                     </div>
                 );
             case 'narrativa':
@@ -129,6 +178,15 @@ const NewProjectInputs = ({ activeSection, formData, onInputChange, onSave, sect
                             value={formData.narrative.roleDescription}
                             onChange={(e) => onInputChange('narrative', 'roleDescription', e.target.value)}
                         />
+
+                        <div className="section-footer">
+                            <button type="button" className="btn-back-step" onClick={handleBack}>
+                                <span className="arrow">←</span> Anterior
+                            </button>
+                            <button type="button" className="btn-next-step" onClick={handleNext}>
+                                Siguiente: Tecnología <span className="arrow">→</span>
+                            </button>
+                        </div>
                     </div>
                 );
             case 'tecnologia':
@@ -160,6 +218,15 @@ const NewProjectInputs = ({ activeSection, formData, onInputChange, onSave, sect
                                 ))}
                             </div>
                         </div>
+
+                        <div className="section-footer">
+                            <button type="button" className="btn-back-step" onClick={handleBack}>
+                                <span className="arrow">←</span> Anterior
+                            </button>
+                            <button type="button" className="btn-next-step" onClick={handleNext}>
+                                Siguiente: Resultados <span className="arrow">→</span>
+                            </button>
+                        </div>
                     </div>
                 );
             case 'resultados':
@@ -180,6 +247,15 @@ const NewProjectInputs = ({ activeSection, formData, onInputChange, onSave, sect
                             value={formData.outcomes.learnings}
                             onChange={(e) => onInputChange('outcomes', 'learnings', e.target.value)}
                         />
+
+                        <div className="section-footer">
+                            <button type="button" className="btn-back-step" onClick={handleBack}>
+                                <span className="arrow">←</span> Anterior
+                            </button>
+                            <button type="button" className="btn-next-step" onClick={handleNext}>
+                                Siguiente: Multimedia <span className="arrow">→</span>
+                            </button>
+                        </div>
                     </div>
                 );
             case 'multimedia':
@@ -202,11 +278,7 @@ const NewProjectInputs = ({ activeSection, formData, onInputChange, onSave, sect
                                     {isUploading ? (
                                         <div className="upload-spinner"></div>
                                     ) : (
-                                        <>
-                                            <span className="upload-icon">📸</span>
-                                            <span className="upload-text">Selecciona o arrastra tus mejores imágenes</span>
-                                            <span className="upload-subtext">JPG, PNG o WEBP (Máx. 5MB)</span>
-                                        </>
+                                        <span className="upload-text">Selecciona o arrastra tus mejores imágenes</span>
                                     )}
                                 </label>
                             </div>
@@ -232,6 +304,15 @@ const NewProjectInputs = ({ activeSection, formData, onInputChange, onSave, sect
                                 value={formData.media.videoUrl}
                                 onChange={(e) => onInputChange('media', 'videoUrl', e.target.value)}
                             />
+                        </div>
+
+                        <div className="section-footer">
+                            <button type="button" className="btn-back-step" onClick={handleBack}>
+                                <span className="arrow">←</span> Anterior
+                            </button>
+                            <button type="button" className="btn-next-step" onClick={handleNext}>
+                                Siguiente: Revisión <span className="arrow">→</span>
+                            </button>
                         </div>
                     </div>
                 );
@@ -274,6 +355,12 @@ const NewProjectInputs = ({ activeSection, formData, onInputChange, onSave, sect
                                 onClick={() => onSave('Publicado')}
                             >
                                 Crear proyecto
+                            </button>
+                        </div>
+
+                        <div className="section-footer" style={{ marginTop: '2rem' }}>
+                            <button type="button" className="btn-back-step" onClick={handleBack}>
+                                <span className="arrow">←</span> Volver a Multimedia
                             </button>
                         </div>
                     </div>

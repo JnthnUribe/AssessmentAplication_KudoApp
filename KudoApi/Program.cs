@@ -69,6 +69,8 @@ builder.Services.AddScoped<IVoteRepository, VoteRepository>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 
 // Services
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<CloudinaryService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ProjectService>();
 builder.Services.AddScoped<ReviewService>();

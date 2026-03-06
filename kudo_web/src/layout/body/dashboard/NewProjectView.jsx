@@ -150,6 +150,7 @@ const NewProjectView = ({ onViewChange }) => {
                         <main className="dashboard-main-content">
                             <NewProjectInputs
                                 activeSection={activeSection}
+                                onSectionChange={setActiveSection}
                                 formData={formData}
                                 onInputChange={handleInputChange}
                                 onSave={handleSaveProject}
