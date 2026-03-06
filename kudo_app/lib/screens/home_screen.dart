@@ -15,12 +15,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   // Design System
   static const Color backgroundColor = Color(0xFF0B1221);
   static const Color accentColor = Color(0xFF3B82F6);
-  static const Color cardColor = Color(0xFF111827);
   static const Color surfaceColor = Color(0xFF1E293B);
 
   final ApiService _apiService = ApiService();
   late Future<List<Project>> _projectsFuture;
-  String _searchQuery = '';
   String _selectedCategory = 'Todos';
   late AnimationController _headerAnimController;
   late Animation<double> _headerFadeAnim;
@@ -54,18 +52,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   List<Project> _filterProjects(List<Project> projects) {
     return projects.where((p) {
-      final matchesSearch =
-          _searchQuery.isEmpty ||
-          p.title.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          p.description.toLowerCase().contains(_searchQuery.toLowerCase());
       final matchesCategory =
           _selectedCategory == 'Todos' || p.category == _selectedCategory;
-      return matchesSearch && matchesCategory;
+      return matchesCategory;
     }).toList();
   }
 
   List<String> _getCategories(List<Project> projects) {
-    final cats = projects.map((p) => p.category).toSet().toList();
+    final cats = projects
+        .map((p) => p.category)
+        .where((c) => c.isNotEmpty)
+        .toSet()
+        .toList();
     cats.sort();
     return ['Todos', ...cats];
   }
@@ -98,10 +96,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               slivers: [
                 // Header
                 SliverToBoxAdapter(child: _buildHeader()),
-                // Search bar
-                SliverToBoxAdapter(child: _buildSearchBar()),
                 // Category chips
-                SliverToBoxAdapter(child: _buildCategoryChips(categories)),
+                if (categories.length > 1)
+                  SliverToBoxAdapter(child: _buildCategoryChips(categories)),
                 // Results count
                 SliverToBoxAdapter(
                   child: Padding(
@@ -195,33 +192,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSearchBar() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
-      child: Container(
-        decoration: BoxDecoration(
-          color: surfaceColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withAlpha(10)),
-        ),
-        child: TextField(
-          onChanged: (value) => setState(() => _searchQuery = value),
-          style: const TextStyle(color: Colors.white, fontSize: 15),
-          decoration: InputDecoration(
-            hintText: 'Buscar proyectos...',
-            hintStyle: TextStyle(color: Colors.grey.shade600),
-            prefixIcon: Icon(Icons.search_rounded, color: Colors.grey.shade500),
-            border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
-            ),
-          ),
         ),
       ),
     );

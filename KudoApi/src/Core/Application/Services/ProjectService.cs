@@ -15,6 +15,7 @@ namespace KudoApi.Core.Application.Services
         public async Task<List<Project>> GetAllAsync() => await _projectRepository.GetAllAsync();
         public async Task<Project?> GetByIdAsync(string id) => await _projectRepository.GetByIdAsync(id);
         public async Task<List<Project>> GetByCreatorIdAsync(string creatorId) => await _projectRepository.GetByCreatorIdAsync(creatorId);
+        public async Task<Project?> GetByQrTokenAsync(string qrToken) => await _projectRepository.GetByQrTokenAsync(qrToken);
 
         public async Task CreateAsync(Project project)
         {

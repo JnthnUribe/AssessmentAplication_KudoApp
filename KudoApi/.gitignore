@@ -12,11 +12,6 @@ obj/
 # OS
 Thumbs.db
 .DS_Store
-<<<<<<< Updated upstream
-.env
-
-=======
 
 # Secrets
 .env
->>>>>>> Stashed changes

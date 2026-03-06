@@ -5,13 +5,21 @@ import '../models/project.dart';
 
 /// Servicio para comunicación con la API de KUDO
 class ApiService {
-  // PWA (web) usa localhost, dispositivo físico usa IP de red local
+  // TODO: Reemplaza con tu URL real de Render después del deploy
+  static const String _renderUrl = 'https://kudoapi.onrender.com/api';
+  static const String _localUrl = 'http://localhost:5145/api';
+  static const String _emulatorUrl = 'http://10.0.2.2:5145/api';
+
+  // En release usa Render, en debug usa localhost
   static String get baseUrl {
+    // Para cambiar a producción, descomenta la siguiente línea:
+    // return _renderUrl;
+
     if (kIsWeb) {
-      return 'http://localhost:5145/api';
+      return _localUrl;
     }
-    // Para dispositivo físico Android, cambiar a tu IP local
-    return 'http://10.0.2.2:5145/api';
+    // Para dispositivo físico Android (emulador)
+    return _emulatorUrl;
   }
 
   /// Obtiene la lista de todos los proyectos desde la API
@@ -47,12 +55,31 @@ class ApiService {
     }
   }
 
+  /// Busca un proyecto por su token QR
+  Future<Project?> fetchProjectByQrToken(String token) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/projects/qr/$token'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        return Project.fromJson(jsonDecode(response.body));
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
   /// Envía un voto real al servidor
   /// Retorna: {success: bool, message: String, alreadyVoted: bool}
   Future<Map<String, dynamic>> submitVote({
     required String projectId,
     required String voterId,
     required int score,
+    String comment = '',
+    List<String> tags = const [],
   }) async {
     try {
       final response = await http.post(
@@ -62,6 +89,8 @@ class ApiService {
           'projectId': projectId,
           'voterId': voterId,
           'score': score,
+          'comment': comment,
+          'tags': tags,
         }),
       );
 
@@ -106,6 +135,52 @@ class ApiService {
       return {'hasVoted': false, 'score': 0};
     } catch (e) {
       return {'hasVoted': false, 'score': 0};
+    }
+  }
+
+  // ── Comments ──
+
+  /// Obtiene los comentarios de un proyecto
+  Future<List<Map<String, dynamic>>> fetchComments(String projectId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/comments/project/$projectId'),
+        headers: {'Content-Type': 'application/json'},
+      );
+      if (response.statusCode == 200) {
+        return List<Map<String, dynamic>>.from(jsonDecode(response.body));
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  /// Publica un comentario
+  Future<Map<String, dynamic>> submitComment({
+    required String projectId,
+    required String authorName,
+    required String text,
+    List<String> tags = const [],
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/comments'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'projectId': projectId,
+          'authorName': authorName,
+          'text': text,
+          'tags': tags,
+        }),
+      );
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return {'success': true, 'message': data['message'] ?? 'Publicado'};
+      }
+      return {'success': false, 'message': data['message'] ?? 'Error'};
+    } catch (e) {
+      return {'success': false, 'message': 'Error de conexión: $e'};
     }
   }
 }

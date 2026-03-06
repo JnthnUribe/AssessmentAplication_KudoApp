@@ -1,0 +1,8 @@
+.git
+bin/
+obj/
+.vs/
+.env
+*.user
+*.suo
+*.log

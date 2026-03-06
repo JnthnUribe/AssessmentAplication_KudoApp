@@ -46,6 +46,14 @@ namespace KudoApi.Core.Domain.Entities
         [System.Text.Json.Serialization.JsonPropertyName("media")]
         public ProjectMedia Media { get; set; } = new();
 
+        [BsonElement("totalVotes")]
+        [System.Text.Json.Serialization.JsonPropertyName("totalVotes")]
+        public int TotalVotes { get; set; } = 0;
+
+        [BsonElement("averageRating")]
+        [System.Text.Json.Serialization.JsonPropertyName("averageRating")]
+        public double AverageRating { get; set; } = 0;
+
         [BsonElement("createdAt")]
         [System.Text.Json.Serialization.JsonPropertyName("createdAt")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

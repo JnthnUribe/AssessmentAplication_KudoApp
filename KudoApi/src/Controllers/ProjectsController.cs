@@ -32,6 +32,14 @@ namespace KudoApi.Controllers
             return await _projectService.GetByCreatorIdAsync(creatorId);
         }
 
+        [HttpGet("qr/{token}")]
+        public async Task<ActionResult<Project>> GetByQrToken(string token)
+        {
+            var project = await _projectService.GetByQrTokenAsync(token);
+            if (project == null) return NotFound(new { message = "Proyecto no encontrado con ese QR" });
+            return project;
+        }
+
         [HttpPost]
         public async Task<IActionResult> Create(Project project)
         {

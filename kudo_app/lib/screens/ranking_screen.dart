@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/project.dart';
 import '../services/api_service.dart';
+import '../services/favorite_service.dart';
 
 /// Pantalla de Ranking - Muestra proyectos ordenados por votos con animaciones
 class RankingScreen extends StatefulWidget {
@@ -18,13 +19,25 @@ class _RankingScreenState extends State<RankingScreen>
   static const Color cardColor = Color(0xFF111827);
   static const Color surfaceColor = Color(0xFF1E293B);
   static const Color accentColor = Color(0xFF3B82F6);
+  static const Color greenColor = Color(0xFF10B981);
+  static const Color redColor = Color(0xFFEF4444);
+  static const Color goldColor = Color(0xFFFFD700);
 
   final ApiService _apiService = ApiService();
   List<Project> _ranking = [];
+  Map<String, int> _previousPositions = {}; // projectId -> previous rank
+  Map<String, int> _previousVotes = {}; // projectId -> previous votes
   bool _isLoading = true;
   String? _error;
   Timer? _pollTimer;
   late AnimationController _headerAnim;
+  late AnimationController _pulseAnim;
+  late AnimationController _podiumAnim;
+  bool _isFirstLoad = true;
+
+  // Favorite tracking
+  String? _favoriteProjectId;
+  int _favoriteRank = -1; // -1 = not in ranking
 
   @override
   void initState() {
@@ -33,10 +46,24 @@ class _RankingScreenState extends State<RankingScreen>
       duration: const Duration(milliseconds: 800),
       vsync: this,
     )..forward();
+    _pulseAnim = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    )..repeat(reverse: true);
+    _podiumAnim = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    );
     _loadRanking();
+    _loadFavorite();
     _pollTimer = Timer.periodic(const Duration(seconds: 10), (_) {
       _loadRanking(silent: true);
     });
+  }
+
+  Future<void> _loadFavorite() async {
+    final favId = await FavoriteService.getFavoriteProjectId();
+    if (mounted) setState(() => _favoriteProjectId = favId);
   }
 
   Future<void> _loadRanking({bool silent = false}) async {
@@ -49,11 +76,39 @@ class _RankingScreenState extends State<RankingScreen>
 
     try {
       final projects = await _apiService.fetchProjects();
-      projects.sort((a, b) => b.totalVotes.compareTo(a.totalVotes));
+      projects.sort((a, b) {
+        final ratingCmp = b.averageRating.compareTo(a.averageRating);
+        if (ratingCmp != 0) return ratingCmp;
+        return b.totalVotes.compareTo(a.totalVotes);
+      });
+
+      // Save previous state before updating
+      if (!_isFirstLoad) {
+        _previousPositions = {};
+        _previousVotes = {};
+        for (int i = 0; i < _ranking.length; i++) {
+          _previousPositions[_ranking[i].id] = i + 1;
+          _previousVotes[_ranking[i].id] = _ranking[i].totalVotes;
+        }
+      }
+
       setState(() {
         _ranking = projects;
         _isLoading = false;
       });
+
+      if (_isFirstLoad) {
+        _isFirstLoad = false;
+        _podiumAnim.forward();
+      }
+
+      // Check favorite position
+      await _loadFavorite();
+      if (_favoriteProjectId != null) {
+        final idx = projects.indexWhere((p) => p.id == _favoriteProjectId);
+        final newRank = idx >= 0 ? idx + 1 : -1;
+        if (mounted) setState(() => _favoriteRank = newRank);
+      }
     } catch (e) {
       if (!silent) {
         setState(() {
@@ -62,6 +117,20 @@ class _RankingScreenState extends State<RankingScreen>
         });
       }
     }
+  }
+
+  /// Returns position change: positive = moved up, negative = moved down, 0 = same
+  int _getPositionChange(String projectId, int currentRank) {
+    if (!_previousPositions.containsKey(projectId)) return 0;
+    final prevRank = _previousPositions[projectId]!;
+    return prevRank -
+        currentRank; // positive means moved up (lower rank number)
+  }
+
+  /// Returns vote change since last poll
+  int _getVoteChange(String projectId, int currentVotes) {
+    if (!_previousVotes.containsKey(projectId)) return 0;
+    return currentVotes - _previousVotes[projectId]!;
   }
 
   @override
@@ -80,6 +149,11 @@ class _RankingScreenState extends State<RankingScreen>
               child: CustomScrollView(
                 slivers: [
                   SliverToBoxAdapter(child: _buildHeader()),
+                  // Favorite banner
+                  if (_favoriteProjectId != null &&
+                      _favoriteRank > 0 &&
+                      _favoriteRank <= 5)
+                    SliverToBoxAdapter(child: _buildFavoriteBanner()),
                   if (_ranking.length >= 3)
                     SliverToBoxAdapter(child: _buildPodium()),
                   SliverPadding(
@@ -107,6 +181,76 @@ class _RankingScreenState extends State<RankingScreen>
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _buildFavoriteBanner() {
+    final favProject = _ranking.firstWhere(
+      (p) => p.id == _favoriteProjectId,
+      orElse: () => _ranking.first,
+    );
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Colors.redAccent.shade700.withAlpha(40),
+              Colors.pinkAccent.shade700.withAlpha(20),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.redAccent.withAlpha(60)),
+        ),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.favorite_rounded,
+              color: Colors.redAccent,
+              size: 20,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '¡Tu favorito está en el Top $_favoriteRank!',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    favProject.title,
+                    style: TextStyle(color: Colors.grey.shade400, fontSize: 12),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.redAccent.withAlpha(40),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                '#$_favoriteRank',
+                style: const TextStyle(
+                  color: Colors.redAccent,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -158,38 +302,52 @@ class _RankingScreenState extends State<RankingScreen>
                 ],
               ),
             ),
-            // Live indicator
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: const Color(0xFF10B981).withAlpha(20),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: const Color(0xFF10B981).withAlpha(40),
-                ),
+            // Animated LIVE indicator with pulse
+            ScaleTransition(
+              scale: Tween<double>(begin: 0.92, end: 1.0).animate(
+                CurvedAnimation(parent: _pulseAnim, curve: Curves.easeInOut),
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 7,
-                    height: 7,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF10B981),
-                      shape: BoxShape.circle,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: greenColor.withAlpha(20),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: greenColor.withAlpha(40)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    FadeTransition(
+                      opacity: Tween<double>(begin: 0.4, end: 1.0).animate(
+                        CurvedAnimation(
+                          parent: _pulseAnim,
+                          curve: Curves.easeInOut,
+                        ),
+                      ),
+                      child: Container(
+                        width: 7,
+                        height: 7,
+                        decoration: const BoxDecoration(
+                          color: greenColor,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 6),
-                  const Text(
-                    'LIVE',
-                    style: TextStyle(
-                      color: Color(0xFF10B981),
-                      fontWeight: FontWeight.w700,
-                      fontSize: 11,
-                      letterSpacing: 1,
+                    const SizedBox(width: 6),
+                    const Text(
+                      'LIVE',
+                      style: TextStyle(
+                        color: greenColor,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 11,
+                        letterSpacing: 1,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],
@@ -199,21 +357,31 @@ class _RankingScreenState extends State<RankingScreen>
   }
 
   Widget _buildPodium() {
-    final maxVotes = _ranking.isNotEmpty ? _ranking[0].totalVotes : 1;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          // 2nd place
-          Expanded(child: _buildPodiumItem(_ranking[1], 2, maxVotes, 120)),
-          const SizedBox(width: 8),
-          // 1st place
-          Expanded(child: _buildPodiumItem(_ranking[0], 1, maxVotes, 160)),
-          const SizedBox(width: 8),
-          // 3rd place
-          Expanded(child: _buildPodiumItem(_ranking[2], 3, maxVotes, 100)),
-        ],
+      child: AnimatedBuilder(
+        animation: _podiumAnim,
+        builder: (context, child) {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              // 2nd place
+              Expanded(
+                child: _buildPodiumItem(_ranking[1], 2, 120, _podiumAnim.value),
+              ),
+              const SizedBox(width: 8),
+              // 1st place
+              Expanded(
+                child: _buildPodiumItem(_ranking[0], 1, 160, _podiumAnim.value),
+              ),
+              const SizedBox(width: 8),
+              // 3rd place
+              Expanded(
+                child: _buildPodiumItem(_ranking[2], 3, 100, _podiumAnim.value),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -221,48 +389,82 @@ class _RankingScreenState extends State<RankingScreen>
   Widget _buildPodiumItem(
     Project project,
     int rank,
-    int maxVotes,
-    double height,
+    double maxHeight,
+    double animValue,
   ) {
     final colors = {
-      1: const Color(0xFFFFD700),
+      1: goldColor,
       2: const Color(0xFFC0C0C0),
       3: const Color(0xFFCD7F32),
     };
     final medals = {1: '🥇', 2: '🥈', 3: '🥉'};
     final color = colors[rank]!;
 
+    // Stagger: 1st place has slight delay, 2nd starts first, 3rd last
+    final delays = {1: 0.15, 2: 0.0, 3: 0.3};
+    final delay = delays[rank]!;
+    final progress = ((animValue - delay) / (1.0 - delay)).clamp(0.0, 1.0);
+    final curvedProgress = Curves.easeOutBack.transform(progress);
+    final barHeight = maxHeight * curvedProgress;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Medal
-        Text(medals[rank]!, style: const TextStyle(fontSize: 28)),
+        // Medal with scale animation
+        Transform.scale(
+          scale: curvedProgress.clamp(0.0, 1.2),
+          child: Text(medals[rank]!, style: const TextStyle(fontSize: 28)),
+        ),
         const SizedBox(height: 6),
         // Title
-        Text(
-          project.title,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
+        Opacity(
+          opacity: progress,
+          child: Text(
+            project.title,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
-          textAlign: TextAlign.center,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 4),
-        Text(
-          '${project.totalVotes} votos',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: color,
+        // Rating & votes
+        Opacity(
+          opacity: progress,
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.star_rounded, color: color, size: 14),
+                  const SizedBox(width: 2),
+                  Text(
+                    project.averageRating.toStringAsFixed(1),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: color,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '${project.totalVotes} votos',
+                style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 8),
-        // Podium bar
+        // Animated podium bar
         Container(
-          height: height,
+          height: barHeight,
           width: double.infinity,
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -274,12 +476,15 @@ class _RankingScreenState extends State<RankingScreen>
             border: Border.all(color: color.withAlpha(60)),
           ),
           child: Center(
-            child: Text(
-              '#$rank',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.w900,
-                color: color.withAlpha(80),
+            child: Opacity(
+              opacity: progress,
+              child: Text(
+                '#$rank',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w900,
+                  color: color.withAlpha(80),
+                ),
               ),
             ),
           ),
@@ -289,6 +494,9 @@ class _RankingScreenState extends State<RankingScreen>
   }
 
   Widget _buildRankingItem(Project project, int rank, int index) {
+    final posChange = _getPositionChange(project.id, rank);
+    final voteChange = _getVoteChange(project.id, project.totalVotes);
+
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),
       duration: Duration(milliseconds: 400 + index * 60),
@@ -308,7 +516,13 @@ class _RankingScreenState extends State<RankingScreen>
         decoration: BoxDecoration(
           color: cardColor,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.white.withAlpha(6)),
+          border: Border.all(
+            color: posChange > 0
+                ? greenColor.withAlpha(30)
+                : posChange < 0
+                ? redColor.withAlpha(30)
+                : Colors.white.withAlpha(6),
+          ),
         ),
         child: Row(
           children: [
@@ -331,7 +545,10 @@ class _RankingScreenState extends State<RankingScreen>
                 ),
               ),
             ),
-            const SizedBox(width: 14),
+            const SizedBox(width: 6),
+            // Position change indicator
+            _buildPositionIndicator(posChange),
+            const SizedBox(width: 10),
             // Project info
             Expanded(
               child: Column(
@@ -345,42 +562,115 @@ class _RankingScreenState extends State<RankingScreen>
                       color: Colors.white,
                     ),
                   ),
-                  const SizedBox(height: 3),
-                  Text(
-                    project.category,
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-                  ),
+                  if (project.category.isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      project.category,
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
-            // Votes
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: accentColor.withAlpha(15),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.how_to_vote_rounded,
-                    color: accentColor,
-                    size: 15,
+            // Votes with change
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
                   ),
-                  const SizedBox(width: 5),
+                  decoration: BoxDecoration(
+                    color: accentColor.withAlpha(15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.how_to_vote_rounded,
+                        color: accentColor,
+                        size: 15,
+                      ),
+                      const SizedBox(width: 5),
+                      Text(
+                        '${project.totalVotes}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 15,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (voteChange > 0) ...[
+                  const SizedBox(height: 4),
                   Text(
-                    '${project.totalVotes}',
+                    '+$voteChange nuevos',
                     style: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 15,
-                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: greenColor,
                     ),
                   ),
                 ],
-              ),
+              ],
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildPositionIndicator(int change) {
+    if (change == 0) {
+      return Container(
+        width: 24,
+        height: 24,
+        decoration: BoxDecoration(
+          color: Colors.grey.withAlpha(15),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: const Center(
+          child: Text(
+            '—',
+            style: TextStyle(
+              color: Colors.grey,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      );
+    }
+
+    final isUp = change > 0;
+    final color = isUp ? greenColor : redColor;
+    final icon = isUp
+        ? Icons.arrow_upward_rounded
+        : Icons.arrow_downward_rounded;
+
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.0, end: 1.0),
+      duration: const Duration(milliseconds: 600),
+      curve: Curves.elasticOut,
+      builder: (context, value, child) {
+        return Transform.scale(scale: value, child: child);
+      },
+      child: Container(
+        width: 24,
+        height: 24,
+        decoration: BoxDecoration(
+          color: color.withAlpha(20),
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: color.withAlpha(40)),
+        ),
+        child: Center(child: Icon(icon, color: color, size: 14)),
       ),
     );
   }
@@ -459,6 +749,8 @@ class _RankingScreenState extends State<RankingScreen>
   void dispose() {
     _pollTimer?.cancel();
     _headerAnim.dispose();
+    _pulseAnim.dispose();
+    _podiumAnim.dispose();
     super.dispose();
   }
 }

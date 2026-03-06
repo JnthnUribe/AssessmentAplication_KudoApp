@@ -29,6 +29,11 @@ namespace KudoApi.Infrastructure.Repositories
             return await _context.Projects.Find(p => p.CreatorId == creatorId).ToListAsync();
         }
 
+        public async Task<Project?> GetByQrTokenAsync(string qrToken)
+        {
+            return await _context.Projects.Find(p => p.QrToken == qrToken).FirstOrDefaultAsync();
+        }
+
         public async Task CreateAsync(Project project)
         {
             await _context.Projects.InsertOneAsync(project);
