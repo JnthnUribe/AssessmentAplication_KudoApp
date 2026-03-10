@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'screens/home_screen.dart';
 import 'screens/ranking_screen.dart';
 import 'screens/profile_screen.dart';
+import 'widgets/kudo_background.dart';
 
 void main() {
   runApp(const KudoApp());
@@ -114,19 +115,21 @@ class _MainNavigationState extends State<MainNavigation> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        switchInCurve: Curves.easeInOut,
-        switchOutCurve: Curves.easeInOut,
-        transitionBuilder: (child, animation) {
-          return FadeTransition(opacity: animation, child: child);
-        },
-        child: KeyedSubtree(
-          key: ValueKey<int>(_selectedIndex),
-          child: _screens[_selectedIndex],
+      extendBody: true,
+      body: KudoBackground(
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          switchInCurve: Curves.easeInOut,
+          switchOutCurve: Curves.easeInOut,
+          transitionBuilder: (child, animation) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+          child: KeyedSubtree(
+            key: ValueKey<int>(_selectedIndex),
+            child: _screens[_selectedIndex],
+          ),
         ),
       ),
-      extendBody: true,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: const Color(0xFF020205).withAlpha(180),

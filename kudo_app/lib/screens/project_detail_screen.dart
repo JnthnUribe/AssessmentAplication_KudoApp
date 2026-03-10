@@ -179,14 +179,14 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: Colors.transparent,
       body: CustomScrollView(
         slivers: [
           // Hero Image
           SliverAppBar(
             expandedHeight: 300,
             pinned: true,
-            backgroundColor: backgroundColor,
+            backgroundColor: Colors.transparent,
             leading: Container(
               margin: const EdgeInsets.all(8),
               decoration: BoxDecoration(

@@ -137,7 +137,7 @@ class _RankingScreenState extends State<RankingScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: Colors.transparent,
       body: _isLoading
           ? _buildLoading()
           : _error != null
