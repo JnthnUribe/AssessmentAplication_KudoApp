@@ -441,18 +441,24 @@ class _AnimatedProjectCardState extends State<_AnimatedProjectCard>
         position: _slideAnim,
         child: Padding(
           padding: const EdgeInsets.only(bottom: 14),
-          child: GestureDetector(
-            onTap: widget.onTap,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  curve: Curves.easeOut,
-                  height:
-                      140, // Fixed card height like web min-height: 240px proportionally
-                  decoration: BoxDecoration(
+          child: MouseRegion(
+            onEnter: (_) => setState(() => _isHovered = true),
+            onExit: (_) => setState(() => _isHovered = false),
+            child: GestureDetector(
+              onTapDown: (_) => setState(() => _isHovered = true),
+              onTapUp: (_) => setState(() => _isHovered = false),
+              onTapCancel: () => setState(() => _isHovered = false),
+              onTap: widget.onTap,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeOut,
+                    height: 140, // Fixed card height like web min-height: 240px proportionally
+                    transform: Matrix4.identity()..scale(_isHovered ? 1.02 : 1.0),
+                    decoration: BoxDecoration(
                     // Web: background: rgba(38, 38, 38, 0.55)
                     color: _isHovered
                         ? Colors.black
@@ -569,6 +575,7 @@ class _AnimatedProjectCardState extends State<_AnimatedProjectCard>
             ),
           ),
         ),
+      ),
       ),
     );
   }

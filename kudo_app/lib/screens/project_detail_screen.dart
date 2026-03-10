@@ -4,6 +4,7 @@ import '../models/project.dart';
 import '../services/api_service.dart';
 import '../services/voter_service.dart';
 import '../services/favorite_service.dart';
+import '../widgets/kudo_background.dart';
 
 class ProjectDetailScreen extends StatefulWidget {
   final Project project;
@@ -70,9 +71,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
         _previousScore = result['score'] ?? 0;
         _rating = _previousScore.toDouble();
         _savedComment = result['comment'] ?? '';
-        _savedTags = result['tags'] != null
-            ? List<String>.from(result['tags'])
-            : [];
+        _savedTags =
+            result['tags'] != null ? List<String>.from(result['tags']) : [];
       });
     }
   }
@@ -178,226 +178,203 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: CustomScrollView(
-        slivers: [
-          // Hero Image
-          SliverAppBar(
-            expandedHeight: 300,
-            pinned: true,
-            backgroundColor: Colors.transparent,
-            leading: Container(
-              margin: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.black.withAlpha(100),
-                shape: BoxShape.circle,
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ),
-            actions: [
-              Container(
+    return KudoBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: CustomScrollView(
+          slivers: [
+            // Hero Image
+            SliverAppBar(
+              expandedHeight: 300,
+              pinned: true,
+              backgroundColor: Colors.transparent,
+              leading: Container(
                 margin: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: Colors.black.withAlpha(100),
                   shape: BoxShape.circle,
                 ),
                 child: IconButton(
-                  icon: Icon(
-                    _isFavorite
-                        ? Icons.favorite_rounded
-                        : Icons.favorite_border_rounded,
-                    color: _isFavorite ? Colors.redAccent : Colors.white,
-                  ),
-                  onPressed: _toggleFavorite,
+                  icon:
+                      const Icon(Icons.arrow_back_rounded, color: Colors.white),
+                  onPressed: () => Navigator.pop(context),
                 ),
               ),
-            ],
-            flexibleSpace: FlexibleSpaceBar(
-              background: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.network(
-                    widget.project.imageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: surfaceColor,
-                      child: const Center(
-                        child: Icon(
-                          Icons.image_rounded,
-                          size: 64,
-                          color: Colors.grey,
+              actions: [
+                Container(
+                  margin: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withAlpha(100),
+                    shape: BoxShape.circle,
+                  ),
+                  child: IconButton(
+                    icon: Icon(
+                      _isFavorite
+                          ? Icons.favorite_rounded
+                          : Icons.favorite_border_rounded,
+                      color: _isFavorite ? Colors.redAccent : Colors.white,
+                    ),
+                    onPressed: _toggleFavorite,
+                  ),
+                ),
+              ],
+              flexibleSpace: FlexibleSpaceBar(
+                background: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.network(
+                      widget.project.imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        color: surfaceColor,
+                        child: const Center(
+                          child: Icon(
+                            Icons.image_rounded,
+                            size: 64,
+                            color: Colors.grey,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  // Gradient overlay
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.black.withAlpha(30),
-                          backgroundColor.withAlpha(60),
-                          backgroundColor,
-                        ],
-                        stops: const [0.0, 0.6, 1.0],
+                    // Gradient overlay
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.black.withAlpha(30),
+                            const Color(0xFF020205).withAlpha(150),
+                            const Color(0xFF020205).withAlpha(0),
+                          ],
+                          stops: const [0.0, 0.7, 1.0],
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
 
-          // Content
-          SliverToBoxAdapter(
-            child: FadeTransition(
-              opacity: _fadeAnim,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(24, 4, 24, 40),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Category + Platform + Votes row
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                accentColor.withAlpha(40),
-                                accentColor.withAlpha(15),
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            widget.project.category,
-                            style: const TextStyle(
-                              color: accentColor,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                        if (widget.project.platform.isNotEmpty) ...[
-                          const SizedBox(width: 8),
+            // Content
+            SliverToBoxAdapter(
+              child: FadeTransition(
+                opacity: _fadeAnim,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 4, 24, 40),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Category + Platform + Votes row
+                      Row(
+                        children: [
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
+                              horizontal: 12,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  accentColor.withAlpha(40),
+                                  accentColor.withAlpha(15),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              widget.project.category,
+                              style: const TextStyle(
+                                color: accentColor,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                          if (widget.project.platform.isNotEmpty) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: surfaceColor,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: Colors.white.withAlpha(10),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    _platformIcon(widget.project.platform),
+                                    color: Colors.grey.shade400,
+                                    size: 14,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    widget.project.platform,
+                                    style: TextStyle(
+                                      color: Colors.grey.shade400,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                          const Spacer(),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
                               color: surfaceColor,
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: Colors.white.withAlpha(10),
-                              ),
                             ),
                             child: Row(
-                              mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(
-                                  _platformIcon(widget.project.platform),
-                                  color: Colors.grey.shade400,
-                                  size: 14,
+                                const Icon(
+                                  Icons.how_to_vote_rounded,
+                                  color: accentColor,
+                                  size: 16,
                                 ),
-                                const SizedBox(width: 4),
+                                const SizedBox(width: 6),
                                 Text(
-                                  widget.project.platform,
+                                  '${widget.project.totalVotes} votos',
                                   style: TextStyle(
-                                    color: Colors.grey.shade400,
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 12,
+                                    color: Colors.grey.shade300,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 13,
                                   ),
                                 ),
                               ],
                             ),
                           ),
                         ],
-                        const Spacer(),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: surfaceColor,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.how_to_vote_rounded,
-                                color: accentColor,
-                                size: 16,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                '${widget.project.totalVotes} votos',
-                                style: TextStyle(
-                                  color: Colors.grey.shade300,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Title
-                    Text(
-                      widget.project.title,
-                      style: const TextStyle(
-                        fontSize: 30,
-                        fontWeight: FontWeight.w800,
-                        height: 1.1,
-                        letterSpacing: -0.5,
                       ),
-                    ),
-                    const SizedBox(height: 28),
+                      const SizedBox(height: 20),
 
-                    // About section
-                    _buildSectionHeader(
-                      Icons.info_outline_rounded,
-                      'Acerca del proyecto',
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.all(18),
-                      decoration: BoxDecoration(
-                        color: cardColor,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.white.withAlpha(25)),
-                      ),
-                      child: Text(
-                        widget.project.description,
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: Colors.grey.shade400,
-                          height: 1.7,
+                      // Title
+                      Text(
+                        widget.project.title,
+                        style: const TextStyle(
+                          fontSize: 30,
+                          fontWeight: FontWeight.w800,
+                          height: 1.1,
+                          letterSpacing: -0.5,
                         ),
                       ),
-                    ),
+                      const SizedBox(height: 28),
 
-                    // Role Description (if available)
-                    if (widget.project.roleDescription.isNotEmpty) ...[
-                      const SizedBox(height: 24),
+                      // About section
                       _buildSectionHeader(
-                        Icons.person_outline_rounded,
-                        'Rol del Creador',
+                        Icons.info_outline_rounded,
+                        'Acerca del proyecto',
                       ),
                       const SizedBox(height: 12),
                       Container(
@@ -408,265 +385,237 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                           border: Border.all(color: Colors.white.withAlpha(25)),
                         ),
                         child: Text(
-                          widget.project.roleDescription,
+                          widget.project.description,
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: 15,
                             color: Colors.grey.shade400,
-                            height: 1.6,
+                            height: 1.7,
                           ),
                         ),
                       ),
-                    ],
 
-                    // Tech Stack (if available)
-                    if (widget.project.techStack.isNotEmpty) ...[
-                      const SizedBox(height: 24),
-                      _buildSectionHeader(Icons.code_rounded, 'Tecnologías'),
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: widget.project.techStack.map((tech) {
-                          return Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: accentColor.withAlpha(15),
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: accentColor.withAlpha(30),
-                              ),
-                            ),
-                            child: Text(
-                              tech,
-                              style: const TextStyle(
-                                color: accentColor,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ],
-
-                    // Outcomes (if available)
-                    if (widget.project.outcomes.results.isNotEmpty) ...[
-                      const SizedBox(height: 24),
-                      _buildSectionHeader(
-                        Icons.emoji_events_outlined,
-                        'Resultados',
-                      ),
-                      const SizedBox(height: 12),
-                      ...widget.project.outcomes.results.map((result) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                margin: const EdgeInsets.only(top: 6),
-                                width: 6,
-                                height: 6,
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFF10B981),
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  result,
-                                  style: TextStyle(
-                                    color: Colors.grey.shade400,
-                                    fontSize: 14,
-                                    height: 1.5,
-                                  ),
-                                ),
-                              ),
-                            ],
+                      // Role Description (if available)
+                      if (widget.project.roleDescription.isNotEmpty) ...[
+                        const SizedBox(height: 24),
+                        _buildSectionHeader(
+                          Icons.person_outline_rounded,
+                          'Rol del Creador',
+                        ),
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.all(18),
+                          decoration: BoxDecoration(
+                            color: cardColor,
+                            borderRadius: BorderRadius.circular(16),
+                            border:
+                                Border.all(color: Colors.white.withAlpha(25)),
                           ),
-                        );
-                      }),
-                    ],
-
-                    // Learnings (if available)
-                    if (widget.project.outcomes.learnings.isNotEmpty) ...[
-                      const SizedBox(height: 24),
-                      _buildSectionHeader(
-                        Icons.lightbulb_outline_rounded,
-                        'Aprendizajes',
-                      ),
-                      const SizedBox(height: 12),
-                      ...widget.project.outcomes.learnings.map((learning) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                margin: const EdgeInsets.only(top: 6),
-                                width: 6,
-                                height: 6,
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFFFBBF24),
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  learning,
-                                  style: TextStyle(
-                                    color: Colors.grey.shade400,
-                                    fontSize: 14,
-                                    height: 1.5,
-                                  ),
-                                ),
-                              ),
-                            ],
+                          child: Text(
+                            widget.project.roleDescription,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade400,
+                              height: 1.6,
+                            ),
                           ),
-                        );
-                      }),
-                    ],
+                        ),
+                      ],
 
-                    // Image Gallery (if multiple images)
-                    if (widget.project.allImageUrls.length > 1) ...[
-                      const SizedBox(height: 24),
-                      _buildSectionHeader(
-                        Icons.photo_library_outlined,
-                        'Galería',
-                      ),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        height: 160,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: widget.project.allImageUrls.length,
-                          itemBuilder: (context, index) {
-                            return Padding(
-                              padding: const EdgeInsets.only(right: 10),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: Image.network(
-                                  widget.project.allImageUrls[index],
-                                  height: 160,
-                                  width: 220,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Container(
-                                    height: 160,
-                                    width: 220,
-                                    color: surfaceColor,
-                                    child: Icon(
-                                      Icons.broken_image_rounded,
-                                      color: Colors.grey.shade700,
-                                    ),
-                                  ),
+                      // Tech Stack (if available)
+                      if (widget.project.techStack.isNotEmpty) ...[
+                        const SizedBox(height: 24),
+                        _buildSectionHeader(Icons.code_rounded, 'Tecnologías'),
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: widget.project.techStack.map((tech) {
+                            return Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: accentColor.withAlpha(15),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: accentColor.withAlpha(30),
+                                ),
+                              ),
+                              child: Text(
+                                tech,
+                                style: const TextStyle(
+                                  color: accentColor,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             );
-                          },
+                          }).toList(),
                         ),
-                      ),
-                    ],
+                      ],
 
-                    // Video link (if available)
-                    if (widget.project.media.videoUrl.isNotEmpty) ...[
-                      const SizedBox(height: 24),
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: cardColor,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: Colors.white.withAlpha(25)),
+                      // Outcomes (if available)
+                      if (widget.project.outcomes.results.isNotEmpty) ...[
+                        const SizedBox(height: 24),
+                        _buildSectionHeader(
+                          Icons.emoji_events_outlined,
+                          'Resultados',
                         ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: Colors.red.withAlpha(20),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const Icon(
-                                Icons.play_circle_filled_rounded,
-                                color: Colors.redAccent,
-                                size: 24,
-                              ),
-                            ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Video del Proyecto',
+                        const SizedBox(height: 12),
+                        ...widget.project.outcomes.results.map((result) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  margin: const EdgeInsets.only(top: 6),
+                                  width: 6,
+                                  height: 6,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFF10B981),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    result,
                                     style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w600,
+                                      color: Colors.grey.shade400,
                                       fontSize: 14,
+                                      height: 1.5,
                                     ),
                                   ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    widget.project.media.videoUrl,
-                                    style: TextStyle(
-                                      color: Colors.grey.shade600,
-                                      fontSize: 12,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
-                    ],
+                          );
+                        }),
+                      ],
 
-                    // External Links (if available)
-                    if (widget.project.media.links.isNotEmpty) ...[
-                      const SizedBox(height: 24),
-                      _buildSectionHeader(Icons.link_rounded, 'Enlaces'),
-                      const SizedBox(height: 12),
-                      ...widget.project.media.links.map((link) {
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          padding: const EdgeInsets.all(14),
+                      // Learnings (if available)
+                      if (widget.project.outcomes.learnings.isNotEmpty) ...[
+                        const SizedBox(height: 24),
+                        _buildSectionHeader(
+                          Icons.lightbulb_outline_rounded,
+                          'Aprendizajes',
+                        ),
+                        const SizedBox(height: 12),
+                        ...widget.project.outcomes.learnings.map((learning) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  margin: const EdgeInsets.only(top: 6),
+                                  width: 6,
+                                  height: 6,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFFBBF24),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    learning,
+                                    style: TextStyle(
+                                      color: Colors.grey.shade400,
+                                      fontSize: 14,
+                                      height: 1.5,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+                      ],
+
+                      // Image Gallery (if multiple images)
+                      if (widget.project.allImageUrls.length > 1) ...[
+                        const SizedBox(height: 24),
+                        _buildSectionHeader(
+                          Icons.photo_library_outlined,
+                          'Galería',
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          height: 160,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: widget.project.allImageUrls.length,
+                            itemBuilder: (context, index) {
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 10),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.network(
+                                    widget.project.allImageUrls[index],
+                                    height: 160,
+                                    width: 220,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => Container(
+                                      height: 160,
+                                      width: 220,
+                                      color: surfaceColor,
+                                      child: Icon(
+                                        Icons.broken_image_rounded,
+                                        color: Colors.grey.shade700,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+
+                      // Video link (if available)
+                      if (widget.project.media.videoUrl.isNotEmpty) ...[
+                        const SizedBox(height: 24),
+                        Container(
+                          padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             color: cardColor,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: Colors.white.withAlpha(6),
-                            ),
+                            borderRadius: BorderRadius.circular(14),
+                            border:
+                                Border.all(color: Colors.white.withAlpha(25)),
                           ),
                           child: Row(
                             children: [
-                              Icon(
-                                Icons.open_in_new_rounded,
-                                color: accentColor,
-                                size: 18,
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.red.withAlpha(20),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(
+                                  Icons.play_circle_filled_rounded,
+                                  color: Colors.redAccent,
+                                  size: 24,
+                                ),
                               ),
-                              const SizedBox(width: 12),
+                              const SizedBox(width: 14),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      link.label.isNotEmpty
-                                          ? link.label
-                                          : 'Enlace',
-                                      style: const TextStyle(
+                                    const Text(
+                                      'Video del Proyecto',
+                                      style: TextStyle(
                                         color: Colors.white,
-                                        fontWeight: FontWeight.w500,
+                                        fontWeight: FontWeight.w600,
                                         fontSize: 14,
                                       ),
                                     ),
+                                    const SizedBox(height: 2),
                                     Text(
-                                      link.url,
+                                      widget.project.media.videoUrl,
                                       style: TextStyle(
                                         color: Colors.grey.shade600,
                                         fontSize: 12,
@@ -679,308 +628,367 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                               ),
                             ],
                           ),
-                        );
-                      }),
-                    ],
-
-                    const SizedBox(height: 32),
-
-                    // Stats row
-                    Row(
-                      children: [
-                        _buildStatCard(
-                          Icons.how_to_vote_rounded,
-                          '${widget.project.totalVotes}',
-                          'Votos',
-                        ),
-                        const SizedBox(width: 12),
-                        _buildStatCard(
-                          Icons.category_rounded,
-                          widget.project.category,
-                          'Categoría',
-                        ),
-                        const SizedBox(width: 12),
-                        _buildStatCard(
-                          Icons.devices_rounded,
-                          widget.project.platform.isNotEmpty
-                              ? widget.project.platform
-                              : '-',
-                          'Plataforma',
                         ),
                       ],
-                    ),
-                    const SizedBox(height: 36),
 
-                    // Vote Section
-                    _buildSectionHeader(
-                      Icons.star_rounded,
-                      'Califica este proyecto',
-                    ),
-                    const SizedBox(height: 16),
-                    Container(
-                      padding: const EdgeInsets.all(28),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [cardColor, accentColor.withAlpha(8)],
-                        ),
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(
-                          color: accentColor.withAlpha(40),
-                          width: 1,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: accentColor.withAlpha(8),
-                            blurRadius: 30,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            _hasAlreadyVoted
-                                ? 'Ya votaste $_previousScore/5 ⭐'
-                                : _rating > 0
-                                ? '¡Gracias por tu voto!'
-                                : 'Toca las estrellas para votar',
-                            style: TextStyle(
-                              color: _hasAlreadyVoted
-                                  ? const Color(0xFF10B981)
-                                  : Colors.grey.shade400,
-                              fontSize: 14,
-                              fontWeight: _hasAlreadyVoted
-                                  ? FontWeight.w600
-                                  : FontWeight.normal,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-
-                          // Stars
-                          RatingBar.builder(
-                            initialRating: 0,
-                            minRating: 1,
-                            direction: Axis.horizontal,
-                            allowHalfRating: false,
-                            itemCount: 5,
-                            itemSize: 44,
-                            unratedColor: const Color(0xFF374151),
-                            itemBuilder: (context, index) {
-                              return Icon(
-                                Icons.star_rounded,
-                                color: index < _rating
-                                    ? const Color(0xFFFBBF24)
-                                    : const Color(0xFF374151),
-                              );
-                            },
-                            onRatingUpdate: (rating) {
-                              setState(() => _rating = rating);
-                            },
-                          ),
-                          const SizedBox(height: 12),
-                          AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 200),
-                            child: _rating > 0
-                                ? Text(
-                                    '${_rating.toInt()} de 5 estrellas',
-                                    key: ValueKey(_rating),
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      color: Color(0xFFFBBF24),
-                                    ),
-                                  )
-                                : const SizedBox(height: 20),
-                          ),
-
-                          // Comment + tags (only before voting)
-                          if (!_hasAlreadyVoted) ...[
-                            const SizedBox(height: 20),
-                            TextField(
-                              controller: _commentCtrl,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 14,
-                              ),
-                              maxLines: 3,
-                              minLines: 1,
-                              decoration: InputDecoration(
-                                hintText:
-                                    'Escribe tu comentario sobre el proyecto...',
-                                hintStyle: TextStyle(
-                                  color: Colors.grey.shade600,
-                                ),
-                                filled: true,
-                                fillColor: surfaceColor,
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide.none,
-                                ),
-                                contentPadding: const EdgeInsets.all(14),
+                      // External Links (if available)
+                      if (widget.project.media.links.isNotEmpty) ...[
+                        const SizedBox(height: 24),
+                        _buildSectionHeader(Icons.link_rounded, 'Enlaces'),
+                        const SizedBox(height: 12),
+                        ...widget.project.media.links.map((link) {
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: cardColor,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.white.withAlpha(6),
                               ),
                             ),
-                            const SizedBox(height: 12),
-                            // Tags input
-                            Row(
+                            child: Row(
                               children: [
-                                Expanded(
-                                  child: TextField(
-                                    controller: _tagCtrl,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 14,
-                                    ),
-                                    decoration: InputDecoration(
-                                      hintText: 'Agregar etiqueta...',
-                                      hintStyle: TextStyle(
-                                        color: Colors.grey.shade600,
-                                      ),
-                                      filled: true,
-                                      fillColor: surfaceColor,
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                        borderSide: BorderSide.none,
-                                      ),
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                            horizontal: 14,
-                                            vertical: 12,
-                                          ),
-                                    ),
-                                    onSubmitted: (_) => _addTag(),
-                                  ),
+                                Icon(
+                                  Icons.open_in_new_rounded,
+                                  color: accentColor,
+                                  size: 18,
                                 ),
-                                const SizedBox(width: 8),
-                                GestureDetector(
-                                  onTap: _addTag,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(10),
-                                    decoration: BoxDecoration(
-                                      color: accentColor,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: const Icon(
-                                      Icons.add_rounded,
-                                      color: Colors.white,
-                                      size: 22,
-                                    ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        link.label.isNotEmpty
+                                            ? link.label
+                                            : 'Enlace',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      Text(
+                                        link.url,
+                                        style: TextStyle(
+                                          color: Colors.grey.shade600,
+                                          fontSize: 12,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
                             ),
-                            if (_tags.isNotEmpty) ...[
-                              const SizedBox(height: 10),
-                              Wrap(
-                                spacing: 6,
-                                runSpacing: 6,
-                                children: _tags.map((tag) {
-                                  return Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 5,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: accentColor.withAlpha(20),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          '#$tag',
-                                          style: const TextStyle(
-                                            color: accentColor,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 4),
-                                        GestureDetector(
-                                          onTap: () =>
-                                              setState(() => _tags.remove(tag)),
-                                          child: const Icon(
-                                            Icons.close,
-                                            color: accentColor,
-                                            size: 14,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                            ],
-                          ],
-                          const SizedBox(height: 24),
+                          );
+                        }),
+                      ],
 
-                          // Submit button
-                          SizedBox(
-                            width: double.infinity,
-                            height: 54,
-                            child: ElevatedButton(
-                              onPressed: (_isSubmitting || _hasAlreadyVoted)
-                                  ? null
-                                  : _submitVote,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: accentColor,
-                                disabledBackgroundColor: accentColor.withAlpha(
-                                  80,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                elevation: 0,
-                              ),
-                              child: _isSubmitting
-                                  ? const SizedBox(
-                                      height: 22,
-                                      width: 22,
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 2.5,
-                                      ),
-                                    )
-                                  : Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          _hasAlreadyVoted
-                                              ? Icons.check_circle_rounded
-                                              : Icons.send_rounded,
-                                          size: 20,
-                                        ),
-                                        const SizedBox(width: 10),
-                                        Text(
-                                          _hasAlreadyVoted
-                                              ? 'Voto Registrado'
-                                              : 'Enviar Evaluación',
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                            ),
+                      const SizedBox(height: 32),
+
+                      // Stats row
+                      Row(
+                        children: [
+                          _buildStatCard(
+                            Icons.how_to_vote_rounded,
+                            '${widget.project.totalVotes}',
+                            'Votos',
+                          ),
+                          const SizedBox(width: 12),
+                          _buildStatCard(
+                            Icons.category_rounded,
+                            widget.project.category,
+                            'Categoría',
+                          ),
+                          const SizedBox(width: 12),
+                          _buildStatCard(
+                            Icons.devices_rounded,
+                            widget.project.platform.isNotEmpty
+                                ? widget.project.platform
+                                : '-',
+                            'Plataforma',
                           ),
                         ],
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 36),
+
+                      // Vote Section
+                      _buildSectionHeader(
+                        Icons.star_rounded,
+                        'Califica este proyecto',
+                      ),
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(28),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [cardColor, accentColor.withAlpha(8)],
+                          ),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: accentColor.withAlpha(40),
+                            width: 1,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: accentColor.withAlpha(8),
+                              blurRadius: 30,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              _hasAlreadyVoted
+                                  ? 'Ya votaste $_previousScore/5 ⭐'
+                                  : _rating > 0
+                                      ? '¡Gracias por tu voto!'
+                                      : 'Toca las estrellas para votar',
+                              style: TextStyle(
+                                color: _hasAlreadyVoted
+                                    ? const Color(0xFF10B981)
+                                    : Colors.grey.shade400,
+                                fontSize: 14,
+                                fontWeight: _hasAlreadyVoted
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+
+                            // Stars
+                            RatingBar.builder(
+                              initialRating: 0,
+                              minRating: 1,
+                              direction: Axis.horizontal,
+                              allowHalfRating: false,
+                              itemCount: 5,
+                              itemSize: 44,
+                              unratedColor: const Color(0xFF374151),
+                              itemBuilder: (context, index) {
+                                return Icon(
+                                  Icons.star_rounded,
+                                  color: index < _rating
+                                      ? const Color(0xFFFBBF24)
+                                      : const Color(0xFF374151),
+                                );
+                              },
+                              onRatingUpdate: (rating) {
+                                setState(() => _rating = rating);
+                              },
+                            ),
+                            const SizedBox(height: 12),
+                            AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 200),
+                              child: _rating > 0
+                                  ? Text(
+                                      '${_rating.toInt()} de 5 estrellas',
+                                      key: ValueKey(_rating),
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFFFBBF24),
+                                      ),
+                                    )
+                                  : const SizedBox(height: 20),
+                            ),
+
+                            // Comment + tags (only before voting)
+                            if (!_hasAlreadyVoted) ...[
+                              const SizedBox(height: 20),
+                              TextField(
+                                controller: _commentCtrl,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                ),
+                                maxLines: 3,
+                                minLines: 1,
+                                decoration: InputDecoration(
+                                  hintText:
+                                      'Escribe tu comentario sobre el proyecto...',
+                                  hintStyle: TextStyle(
+                                    color: Colors.grey.shade600,
+                                  ),
+                                  filled: true,
+                                  fillColor: surfaceColor,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  contentPadding: const EdgeInsets.all(14),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              // Tags input
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: TextField(
+                                      controller: _tagCtrl,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                      ),
+                                      decoration: InputDecoration(
+                                        hintText: 'Agregar etiqueta...',
+                                        hintStyle: TextStyle(
+                                          color: Colors.grey.shade600,
+                                        ),
+                                        filled: true,
+                                        fillColor: surfaceColor,
+                                        border: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          borderSide: BorderSide.none,
+                                        ),
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                          horizontal: 14,
+                                          vertical: 12,
+                                        ),
+                                      ),
+                                      onSubmitted: (_) => _addTag(),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  GestureDetector(
+                                    onTap: _addTag,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: accentColor,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: const Icon(
+                                        Icons.add_rounded,
+                                        color: Colors.white,
+                                        size: 22,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (_tags.isNotEmpty) ...[
+                                const SizedBox(height: 10),
+                                Wrap(
+                                  spacing: 6,
+                                  runSpacing: 6,
+                                  children: _tags.map((tag) {
+                                    return Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 5,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: accentColor.withAlpha(20),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            '#$tag',
+                                            style: const TextStyle(
+                                              color: accentColor,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 4),
+                                          GestureDetector(
+                                            onTap: () => setState(
+                                                () => _tags.remove(tag)),
+                                            child: const Icon(
+                                              Icons.close,
+                                              color: accentColor,
+                                              size: 14,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ],
+                            ],
+                            const SizedBox(height: 24),
+
+                            // Submit button
+                            SizedBox(
+                              width: double.infinity,
+                              height: 54,
+                              child: ElevatedButton(
+                                onPressed: (_isSubmitting || _hasAlreadyVoted)
+                                    ? null
+                                    : _submitVote,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: accentColor,
+                                  disabledBackgroundColor:
+                                      accentColor.withAlpha(
+                                    80,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                child: _isSubmitting
+                                    ? const SizedBox(
+                                        height: 22,
+                                        width: 22,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2.5,
+                                        ),
+                                      )
+                                    : Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            _hasAlreadyVoted
+                                                ? Icons.check_circle_rounded
+                                                : Icons.send_rounded,
+                                            size: 20,
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Text(
+                                            _hasAlreadyVoted
+                                                ? 'Voto Registrado'
+                                                : 'Enviar Evaluación',
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
 
-          // Saved evaluation (read-only after voting)
-          if (_hasAlreadyVoted)
-            SliverToBoxAdapter(child: _buildEvaluationSection()),
+            // Saved evaluation (read-only after voting)
+            if (_hasAlreadyVoted)
+              SliverToBoxAdapter(child: _buildEvaluationSection()),
 
-          // Bottom spacing
-          const SliverToBoxAdapter(child: SizedBox(height: 40)),
-        ],
+            // Bottom spacing
+            const SliverToBoxAdapter(child: SizedBox(height: 40)),
+          ],
+        ),
       ),
     );
   }
