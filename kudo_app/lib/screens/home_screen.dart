@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../models/project.dart';
 import '../services/api_service.dart';
@@ -13,9 +14,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   // Design System
-  static const Color backgroundColor = Color(0xFF0B1221);
+  static const Color backgroundColor = Color(0xFF020205);
   static const Color accentColor = Color(0xFF3B82F6);
-  static const Color surfaceColor = Color(0xFF1E293B);
 
   final ApiService _apiService = ApiService();
   late Future<List<Project>> _projectsFuture;
@@ -143,51 +143,27 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     return FadeTransition(
       opacity: _headerFadeAnim,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 60, 20, 8),
+        padding: const EdgeInsets.fromLTRB(20, 64, 20, 4),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [accentColor, accentColor.withAlpha(180)],
-                    ),
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      BoxShadow(
-                        color: accentColor.withAlpha(60),
-                        blurRadius: 16,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.rocket_launch,
-                    color: Colors.white,
-                    size: 22,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                const Text(
-                  'KUDO',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    letterSpacing: 2,
-                  ),
-                ),
-              ],
+            // Big bold title like web "Mis creaciones" / dashboard-title
+            const Text(
+              'Proyectos',
+              style: TextStyle(
+                fontSize: 42,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+                letterSpacing: -1.5,
+                height: 1.0,
+              ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 6),
             Text(
-              'Descubre y vota por los mejores proyectos',
+              'Descubre y vota por los mejores',
               style: TextStyle(
                 fontSize: 15,
-                color: Colors.grey.shade400,
+                color: Colors.grey.shade500,
                 fontWeight: FontWeight.w400,
               ),
             ),
@@ -198,52 +174,43 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildCategoryChips(List<String> categories) {
+    // Matches web .filter-btn: pill shape, rgba(255,255,255,0.1) bg, active = white bg + black text
     return SizedBox(
-      height: 48,
+      height: 52,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
         itemCount: categories.length,
         itemBuilder: (context, index) {
           final cat = categories[index];
           final isSelected = cat == _selectedCategory;
           return Padding(
-            padding: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.only(right: 10),
             child: GestureDetector(
               onTap: () => setState(() => _selectedCategory = cat),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 250),
+                curve: Curves.easeOut,
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
+                  horizontal: 18,
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  gradient: isSelected
-                      ? LinearGradient(
-                          colors: [accentColor, accentColor.withAlpha(180)],
-                        )
-                      : null,
-                  color: isSelected ? null : surfaceColor,
-                  borderRadius: BorderRadius.circular(24),
-                  border: isSelected
-                      ? null
-                      : Border.all(color: Colors.white.withAlpha(12)),
-                  boxShadow: isSelected
-                      ? [
-                          BoxShadow(
-                            color: accentColor.withAlpha(40),
-                            blurRadius: 12,
-                            offset: const Offset(0, 3),
-                          ),
-                        ]
-                      : null,
+                  // Active = white solid; inactive = rgba(255,255,255,0.1)
+                  color: isSelected ? Colors.white : Colors.white.withAlpha(25),
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(
+                    color:
+                        isSelected ? Colors.white : Colors.white.withAlpha(50),
+                  ),
                 ),
                 child: Text(
                   cat,
                   style: TextStyle(
-                    color: isSelected ? Colors.white : Colors.grey.shade400,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                    fontSize: 13,
+                    // Active = black text; inactive = white text
+                    color: isSelected ? Colors.black : Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13.5,
                   ),
                 ),
               ),
@@ -396,16 +363,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         pageBuilder: (_, __, ___) => ProjectDetailScreen(project: project),
         transitionsBuilder: (_, animation, __, child) {
           return SlideTransition(
-            position:
-                Tween<Offset>(
-                  begin: const Offset(0, 0.08),
-                  end: Offset.zero,
-                ).animate(
-                  CurvedAnimation(
-                    parent: animation,
-                    curve: Curves.easeOutCubic,
-                  ),
-                ),
+            position: Tween<Offset>(
+              begin: const Offset(0, 0.08),
+              end: Offset.zero,
+            ).animate(
+              CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCubic,
+              ),
+            ),
             child: FadeTransition(opacity: animation, child: child),
           );
         },
@@ -467,199 +433,175 @@ class _AnimatedProjectCardState extends State<_AnimatedProjectCard>
 
   @override
   Widget build(BuildContext context) {
+    // Horizontal card layout matching web .project-card-horizontal
+    // Image section (40% width) left, info section (60%) right
     return FadeTransition(
       opacity: _fadeAnim,
       child: SlideTransition(
         position: _slideAnim,
         child: Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: MouseRegion(
-            onEnter: (_) => setState(() => _isHovered = true),
-            onExit: (_) => setState(() => _isHovered = false),
-            child: GestureDetector(
-              onTap: widget.onTap,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                transform: Matrix4.identity()..scale(_isHovered ? 1.02 : 1.0),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF111827),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
+          padding: const EdgeInsets.only(bottom: 14),
+          child: GestureDetector(
+            onTap: widget.onTap,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOut,
+                  height:
+                      140, // Fixed card height like web min-height: 240px proportionally
+                  decoration: BoxDecoration(
+                    // Web: background: rgba(38, 38, 38, 0.55)
                     color: _isHovered
-                        ? const Color(0xFF3B82F6).withAlpha(60)
-                        : Colors.white.withAlpha(8),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
+                        ? Colors.black
+                            .withAlpha(153) // rgba(0,0,0,0.6) on hover
+                        : const Color(0x8C262626), // rgba(38,38,38,0.55)
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      // Web: border: 1px solid rgba(255,255,255,0.1)
+                      // hover: rgba(255,255,255,0.2)
                       color: _isHovered
-                          ? const Color(0xFF3B82F6).withAlpha(20)
-                          : Colors.black.withAlpha(40),
-                      blurRadius: _isHovered ? 24 : 12,
-                      offset: const Offset(0, 4),
+                          ? Colors.white.withAlpha(50)
+                          : Colors.white.withAlpha(25),
                     ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Image with gradient overlay
-                    ClipRRect(
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(20),
-                      ),
-                      child: Stack(
-                        children: [
-                          Image.network(
-                            widget.project.imageUrl,
-                            height: 180,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
-                              height: 180,
-                              color: const Color(0xFF1E293B),
-                              child: Center(
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // ── IMAGE SECTION (40%) matching .project-card-image-section ──
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.38,
+                        child: Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Image.network(
+                              widget.project.imageUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                color: Colors.white.withAlpha(12),
                                 child: Icon(
                                   Icons.image_rounded,
-                                  size: 40,
+                                  size: 32,
                                   color: Colors.grey.shade700,
                                 ),
                               ),
-                            ),
-                            loadingBuilder: (_, child, progress) {
-                              if (progress == null) return child;
-                              return Container(
-                                height: 180,
-                                color: const Color(0xFF1E293B),
-                                child: Center(
-                                  child: CircularProgressIndicator(
-                                    color: const Color(0xFF3B82F6),
-                                    strokeWidth: 2,
-                                    value: progress.expectedTotalBytes != null
-                                        ? progress.cumulativeBytesLoaded /
+                              loadingBuilder: (_, child, progress) {
+                                if (progress == null) return child;
+                                return Container(
+                                  color: Colors.white.withAlpha(12),
+                                  child: Center(
+                                    child: CircularProgressIndicator(
+                                      color: const Color(0xFF3B82F6),
+                                      strokeWidth: 2,
+                                      value: progress.expectedTotalBytes != null
+                                          ? progress.cumulativeBytesLoaded /
                                               progress.expectedTotalBytes!
-                                        : null,
+                                          : null,
+                                    ),
                                   ),
-                                ),
-                              );
-                            },
-                          ),
-                          // Subtle gradient at bottom
-                          Positioned(
-                            bottom: 0,
-                            left: 0,
-                            right: 0,
-                            height: 60,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [
-                                    Colors.transparent,
-                                    const Color(0xFF111827).withAlpha(200),
-                                  ],
-                                ),
-                              ),
+                                );
+                              },
                             ),
                           ),
-                          // Vote badge
-                          Positioned(
-                            top: 12,
-                            right: 12,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withAlpha(140),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: Colors.white.withAlpha(15),
+                        ),
+                      ),
+
+                      // ── INFO SECTION (60%) matching .project-card-info-section ──
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(4, 14, 14, 14),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Title — matching .project-card-title
+                              Text(
+                                widget.project.title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  height: 1.2,
                                 ),
                               ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(
-                                    Icons.how_to_vote_rounded,
-                                    color: Color(0xFF3B82F6),
-                                    size: 14,
+                              const SizedBox(height: 5),
+                              // Description — matching .project-card-description
+                              Expanded(
+                                child: Text(
+                                  widget.project.description,
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: Colors.grey.shade400,
+                                    fontSize: 12.5,
+                                    height: 1.5,
                                   ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    '${widget.project.totalVotes}',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              // Tech pills — matching .tech-pill-small
+                              Wrap(
+                                spacing: 5,
+                                runSpacing: 4,
+                                children: [
+                                  // Category pill
+                                  _TechPill(label: widget.project.category),
+                                  // Votes badge
+                                  _TechPill(
+                                    label:
+                                        '▲ ${widget.project.totalVotes} votos',
+                                    isAccent: true,
                                   ),
                                 ],
                               ),
-                            ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-
-                    // Content
-                    Padding(
-                      padding: const EdgeInsets.all(18),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Category chip
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF3B82F6).withAlpha(20),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              widget.project.category,
-                              style: const TextStyle(
-                                color: Color(0xFF3B82F6),
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          // Title
-                          Text(
-                            widget.project.title,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 19,
-                              fontWeight: FontWeight.w700,
-                              height: 1.2,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          // Description
-                          Text(
-                            widget.project.description,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: Colors.grey.shade500,
-                              fontSize: 13,
-                              height: 1.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Small tech pill matching web .tech-pill-small
+class _TechPill extends StatelessWidget {
+  final String label;
+  final bool isAccent;
+  const _TechPill({required this.label, this.isAccent = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        // Web: background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1)
+        color: isAccent
+            ? const Color(0xFF3B82F6).withAlpha(30)
+            : Colors.white.withAlpha(12),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(
+          color: isAccent
+              ? const Color(0xFF3B82F6).withAlpha(60)
+              : Colors.white.withAlpha(25),
+        ),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 11,
+          color: isAccent ? const Color(0xFF3B82F6) : Colors.grey.shade400,
+          fontWeight: FontWeight.w500,
         ),
       ),
     );

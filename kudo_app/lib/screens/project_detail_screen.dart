@@ -17,10 +17,10 @@ class ProjectDetailScreen extends StatefulWidget {
 class _ProjectDetailScreenState extends State<ProjectDetailScreen>
     with SingleTickerProviderStateMixin {
   // Design System
-  static const Color backgroundColor = Color(0xFF0B1221);
+  static const Color backgroundColor = Color(0xFF020205);
   static const Color accentColor = Color(0xFF3B82F6);
-  static const Color cardColor = Color(0xFF111827);
-  static const Color surfaceColor = Color(0xFF1E293B);
+  static const Color cardColor = Color(0x33262626);
+  static const Color surfaceColor = Color(0x1AFFFFFF);
 
   final ApiService _apiService = ApiService();
   double _rating = 0;
@@ -380,7 +380,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                       decoration: BoxDecoration(
                         color: cardColor,
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.white.withAlpha(6)),
+                        border: Border.all(color: Colors.white.withAlpha(25)),
                       ),
                       child: Text(
                         widget.project.description,
@@ -405,7 +405,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                         decoration: BoxDecoration(
                           color: cardColor,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.white.withAlpha(6)),
+                          border: Border.all(color: Colors.white.withAlpha(25)),
                         ),
                         child: Text(
                           widget.project.roleDescription,
@@ -580,7 +580,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                         decoration: BoxDecoration(
                           color: cardColor,
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: Colors.white.withAlpha(6)),
+                          border: Border.all(color: Colors.white.withAlpha(25)),
                         ),
                         child: Row(
                           children: [
@@ -727,7 +727,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                         ),
                         borderRadius: BorderRadius.circular(24),
                         border: Border.all(
-                          color: accentColor.withAlpha(30),
+                          color: accentColor.withAlpha(40),
                           width: 1,
                         ),
                         boxShadow: [
@@ -1216,7 +1216,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
         decoration: BoxDecoration(
           color: cardColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withAlpha(6)),
+          border: Border.all(color: Colors.white.withAlpha(25)),
         ),
         child: Column(
           children: [

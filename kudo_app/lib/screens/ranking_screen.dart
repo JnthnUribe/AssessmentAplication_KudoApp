@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/project.dart';
@@ -15,9 +16,9 @@ class RankingScreen extends StatefulWidget {
 class _RankingScreenState extends State<RankingScreen>
     with TickerProviderStateMixin {
   // Design System
-  static const Color backgroundColor = Color(0xFF0B1221);
-  static const Color cardColor = Color(0xFF111827);
-  static const Color surfaceColor = Color(0xFF1E293B);
+  static const Color backgroundColor = Color(0xFF020205);
+  static const Color cardColor = Color(0x33262626); // Glassmorphism backdrop
+  static const Color surfaceColor = Color(0x1AFFFFFF);
   static const Color accentColor = Color(0xFF3B82F6);
   static const Color greenColor = Color(0xFF10B981);
   static const Color redColor = Color(0xFFEF4444);
@@ -140,47 +141,48 @@ class _RankingScreenState extends State<RankingScreen>
       body: _isLoading
           ? _buildLoading()
           : _error != null
-          ? _buildErrorState()
-          : _ranking.isEmpty
-          ? _buildEmptyState()
-          : RefreshIndicator(
-              onRefresh: _loadRanking,
-              color: accentColor,
-              child: CustomScrollView(
-                slivers: [
-                  SliverToBoxAdapter(child: _buildHeader()),
-                  // Favorite banner
-                  if (_favoriteProjectId != null &&
-                      _favoriteRank > 0 &&
-                      _favoriteRank <= 5)
-                    SliverToBoxAdapter(child: _buildFavoriteBanner()),
-                  if (_ranking.length >= 3)
-                    SliverToBoxAdapter(child: _buildPodium()),
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
-                    sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final rank = _ranking.length >= 3
-                              ? index + 4
-                              : index + 1;
-                          final item = _ranking.length >= 3
-                              ? (index + 3 < _ranking.length
-                                    ? _ranking[index + 3]
-                                    : null)
-                              : _ranking[index];
-                          if (item == null) return const SizedBox();
-                          return _buildRankingItem(item, rank, index);
-                        },
-                        childCount: _ranking.length >= 3
-                            ? (_ranking.length - 3).clamp(0, _ranking.length)
-                            : _ranking.length,
+              ? _buildErrorState()
+              : _ranking.isEmpty
+                  ? _buildEmptyState()
+                  : RefreshIndicator(
+                      onRefresh: _loadRanking,
+                      color: accentColor,
+                      child: CustomScrollView(
+                        slivers: [
+                          SliverToBoxAdapter(child: _buildHeader()),
+                          // Favorite banner
+                          if (_favoriteProjectId != null &&
+                              _favoriteRank > 0 &&
+                              _favoriteRank <= 5)
+                            SliverToBoxAdapter(child: _buildFavoriteBanner()),
+                          if (_ranking.length >= 3)
+                            SliverToBoxAdapter(child: _buildPodium()),
+                          SliverPadding(
+                            padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+                            sliver: SliverList(
+                              delegate: SliverChildBuilderDelegate(
+                                (context, index) {
+                                  final rank = _ranking.length >= 3
+                                      ? index + 4
+                                      : index + 1;
+                                  final item = _ranking.length >= 3
+                                      ? (index + 3 < _ranking.length
+                                          ? _ranking[index + 3]
+                                          : null)
+                                      : _ranking[index];
+                                  if (item == null) return const SizedBox();
+                                  return _buildRankingItem(item, rank, index);
+                                },
+                                childCount: _ranking.length >= 3
+                                    ? (_ranking.length - 3)
+                                        .clamp(0, _ranking.length)
+                                    : _ranking.length,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ),
     );
   }
 
@@ -510,118 +512,124 @@ class _RankingScreenState extends State<RankingScreen>
           ),
         );
       },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: cardColor,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: posChange > 0
-                ? greenColor.withAlpha(30)
-                : posChange < 0
-                ? redColor.withAlpha(30)
-                : Colors.white.withAlpha(6),
-          ),
-        ),
-        child: Row(
-          children: [
-            // Rank number
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: surfaceColor,
-                borderRadius: BorderRadius.circular(10),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(14),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: cardColor,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: posChange > 0
+                    ? greenColor.withAlpha(30)
+                    : posChange < 0
+                        ? redColor.withAlpha(30)
+                        : Colors.white.withAlpha(25), // Subtle white border
               ),
-              child: Center(
-                child: Text(
-                  '#$rank',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w700,
-                    color: Colors.grey.shade500,
-                    fontSize: 14,
+            ),
+            child: Row(
+              children: [
+                // Rank number
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: surfaceColor,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '#$rank',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: Colors.grey.shade500,
+                        fontSize: 14,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-            const SizedBox(width: 6),
-            // Position change indicator
-            _buildPositionIndicator(posChange),
-            const SizedBox(width: 10),
-            // Project info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    project.title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                      color: Colors.white,
-                    ),
-                  ),
-                  if (project.category.isNotEmpty) ...[
-                    const SizedBox(height: 3),
-                    Text(
-                      project.category,
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            // Votes with change
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: accentColor.withAlpha(15),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
+                const SizedBox(width: 6),
+                // Position change indicator
+                _buildPositionIndicator(posChange),
+                const SizedBox(width: 10),
+                // Project info
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(
-                        Icons.how_to_vote_rounded,
-                        color: accentColor,
-                        size: 15,
-                      ),
-                      const SizedBox(width: 5),
                       Text(
-                        '${project.totalVotes}',
+                        project.title,
                         style: const TextStyle(
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                           fontSize: 15,
                           color: Colors.white,
                         ),
                       ),
+                      if (project.category.isNotEmpty) ...[
+                        const SizedBox(height: 3),
+                        Text(
+                          project.category,
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
-                if (voteChange > 0) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    '+$voteChange nuevos',
-                    style: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: greenColor,
+                // Votes with change
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: accentColor.withAlpha(15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.how_to_vote_rounded,
+                            color: accentColor,
+                            size: 15,
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            '${project.totalVotes}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                    if (voteChange > 0) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        '+$voteChange nuevos',
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: greenColor,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -651,9 +659,8 @@ class _RankingScreenState extends State<RankingScreen>
 
     final isUp = change > 0;
     final color = isUp ? greenColor : redColor;
-    final icon = isUp
-        ? Icons.arrow_upward_rounded
-        : Icons.arrow_downward_rounded;
+    final icon =
+        isUp ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded;
 
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0.0, end: 1.0),

@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'screens/home_screen.dart';
@@ -19,53 +20,73 @@ class KudoApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,
-        scaffoldBackgroundColor: const Color(0xFF0B1221),
+        scaffoldBackgroundColor: const Color(0xFF020205),
         colorScheme: const ColorScheme.dark(
           primary: Color(0xFF3B82F6),
           secondary: Color(0xFF3B82F6),
-          surface: Color(0xFF111827),
+          surface: Color(0xFF020205),
           onPrimary: Colors.white,
           onSecondary: Colors.white,
           onSurface: Colors.white,
         ),
-        fontFamily: GoogleFonts.inter().fontFamily,
+        textTheme: GoogleFonts.dmSansTextTheme(
+          Theme.of(context)
+              .textTheme
+              .apply(bodyColor: Colors.white, displayColor: Colors.white),
+        ).copyWith(
+          titleLarge: GoogleFonts.sen(fontWeight: FontWeight.w800),
+          titleMedium: GoogleFonts.sen(fontWeight: FontWeight.w700),
+          titleSmall: GoogleFonts.sen(fontWeight: FontWeight.w700),
+          headlineLarge: GoogleFonts.sen(fontWeight: FontWeight.w800),
+          headlineMedium: GoogleFonts.sen(fontWeight: FontWeight.w800),
+          headlineSmall: GoogleFonts.sen(fontWeight: FontWeight.w800),
+        ),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF0B1221),
+          backgroundColor: Color(0xFF020205),
           elevation: 0,
           centerTitle: true,
         ),
         cardTheme: const CardThemeData(
-          color: Color(0xFF111827),
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(16)),
-          ),
+          color: Colors.transparent, // Uses glassmorphism
+          elevation: 0,
         ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
-          fillColor: const Color(0xFF1F2937),
+          fillColor: Colors.white.withAlpha(25),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
+            borderSide: BorderSide(color: Colors.white.withAlpha(50)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Colors.white.withAlpha(50)),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 2),
+            borderSide: const BorderSide(color: Color(0xFFFFFFFF), width: 1.5),
           ),
-          hintStyle: const TextStyle(color: Colors.grey),
+          hintStyle: TextStyle(color: Colors.white.withAlpha(128)),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF3B82F6),
+            backgroundColor: const Color(0xFF1A1A1A),
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(8),
             ),
             textStyle: const TextStyle(
               fontSize: 16,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w500,
             ),
+          ).copyWith(
+            side: WidgetStateProperty.resolveWith<BorderSide>((states) {
+              if (states.contains(WidgetState.hovered) ||
+                  states.contains(WidgetState.pressed)) {
+                return const BorderSide(color: Color(0xFF646CFF));
+              }
+              return BorderSide.none;
+            }),
           ),
         ),
       ),
@@ -105,64 +126,63 @@ class _MainNavigationState extends State<MainNavigation> {
           child: _screens[_selectedIndex],
         ),
       ),
+      extendBody: true,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFF111827),
+          color: const Color(0xFF020205).withAlpha(180),
           border: Border(
             top: BorderSide(
-              color: const Color(0xFF3B82F6).withAlpha(30),
+              color: Colors.white.withAlpha(25),
               width: 1,
             ),
           ),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF3B82F6).withAlpha(15),
-              blurRadius: 20,
-              offset: const Offset(0, -4),
-            ),
-          ],
         ),
-        child: NavigationBar(
-          backgroundColor: Colors.transparent,
-          surfaceTintColor: Colors.transparent,
-          indicatorColor: const Color(0xFF3B82F6).withAlpha(35),
-          selectedIndex: _selectedIndex,
-          animationDuration: const Duration(milliseconds: 400),
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-          onDestinationSelected: (index) {
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.rocket_launch_outlined, size: 22),
-              selectedIcon: Icon(
-                Icons.rocket_launch,
-                color: Color(0xFF3B82F6),
-                size: 24,
-              ),
-              label: 'Proyectos',
+        child: ClipRRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+            child: NavigationBar(
+              backgroundColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
+              indicatorColor: const Color(0xFF3B82F6).withAlpha(35),
+              selectedIndex: _selectedIndex,
+              animationDuration: const Duration(milliseconds: 400),
+              labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+              onDestinationSelected: (index) {
+                setState(() {
+                  _selectedIndex = index;
+                });
+              },
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.rocket_launch_outlined, size: 22),
+                  selectedIcon: Icon(
+                    Icons.rocket_launch,
+                    color: Color(0xFF3B82F6),
+                    size: 24,
+                  ),
+                  label: 'Proyectos',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.emoji_events_outlined, size: 22),
+                  selectedIcon: Icon(
+                    Icons.emoji_events,
+                    color: Color(0xFF3B82F6),
+                    size: 24,
+                  ),
+                  label: 'Ranking',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.person_outline_rounded, size: 22),
+                  selectedIcon: Icon(
+                    Icons.person_rounded,
+                    color: Color(0xFF3B82F6),
+                    size: 24,
+                  ),
+                  label: 'Perfil',
+                ),
+              ],
             ),
-            NavigationDestination(
-              icon: Icon(Icons.emoji_events_outlined, size: 22),
-              selectedIcon: Icon(
-                Icons.emoji_events,
-                color: Color(0xFF3B82F6),
-                size: 24,
-              ),
-              label: 'Ranking',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.person_outline_rounded, size: 22),
-              selectedIcon: Icon(
-                Icons.person_rounded,
-                color: Color(0xFF3B82F6),
-                size: 24,
-              ),
-              label: 'Perfil',
-            ),
-          ],
+          ),
         ),
       ),
     );
