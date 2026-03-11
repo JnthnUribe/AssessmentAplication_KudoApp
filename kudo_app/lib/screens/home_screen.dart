@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../models/project.dart';
 import '../services/api_service.dart';
+import '../services/favorite_service.dart';
 import 'project_detail_screen.dart';
 
 /// Pantalla principal - Lista de proyectos con búsqueda y filtros
@@ -22,11 +23,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   String _selectedCategory = 'Todos';
   late AnimationController _headerAnimController;
   late Animation<double> _headerFadeAnim;
+  String? _favoriteProjectId;
 
   @override
   void initState() {
     super.initState();
     _projectsFuture = _apiService.fetchProjects();
+    _loadFavorite();
     _headerAnimController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -44,7 +47,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     super.dispose();
   }
 
+  Future<void> _loadFavorite() async {
+    final favId = await FavoriteService.getFavoriteProjectId();
+    if (mounted) {
+      setState(() => _favoriteProjectId = favId);
+    }
+  }
+
   Future<void> _refreshProjects() async {
+    _loadFavorite();
     setState(() {
       _projectsFuture = _apiService.fetchProjects();
     });
@@ -126,6 +137,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             return _AnimatedProjectCard(
                               project: filtered[index],
                               index: index,
+                              isFavorite:
+                                  filtered[index].id == _favoriteProjectId,
                               onTap: () => _navigateToDetail(filtered[index]),
                             );
                           }, childCount: filtered.length),
@@ -377,7 +390,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         },
       ),
     );
-    // Si votó exitosamente, refrescar la lista
+    // Si votó exitosamente o cambió favorito, refrescar la lista
+    await _loadFavorite();
     if (result == true) {
       _refreshProjects();
     }
@@ -388,11 +402,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 class _AnimatedProjectCard extends StatefulWidget {
   final Project project;
   final int index;
+  final bool isFavorite;
   final VoidCallback onTap;
 
   const _AnimatedProjectCard({
     required this.project,
     required this.index,
+    required this.isFavorite,
     required this.onTap,
   });
 
@@ -456,126 +472,153 @@ class _AnimatedProjectCardState extends State<_AnimatedProjectCard>
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 200),
                     curve: Curves.easeOut,
-                    height: 140, // Fixed card height like web min-height: 240px proportionally
-                    transform: Matrix4.identity()..scale(_isHovered ? 1.02 : 1.0),
+                    height:
+                        140, // Fixed card height like web min-height: 240px proportionally
+                    transform: Matrix4.identity()
+                      ..scale(_isHovered ? 1.02 : 1.0),
                     decoration: BoxDecoration(
-                    // Web: background: rgba(38, 38, 38, 0.55)
-                    color: _isHovered
-                        ? Colors.black
-                            .withAlpha(153) // rgba(0,0,0,0.6) on hover
-                        : const Color(0x8C262626), // rgba(38,38,38,0.55)
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      // Web: border: 1px solid rgba(255,255,255,0.1)
-                      // hover: rgba(255,255,255,0.2)
+                      // Web: background: rgba(38, 38, 38, 0.55)
                       color: _isHovered
-                          ? Colors.white.withAlpha(50)
-                          : Colors.white.withAlpha(25),
+                          ? Colors.black
+                              .withAlpha(153) // rgba(0,0,0,0.6) on hover
+                          : const Color(0x8C262626), // rgba(38,38,38,0.55)
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        // Web: border: 1px solid rgba(255,255,255,0.1)
+                        // hover: rgba(255,255,255,0.2)
+                        color: _isHovered
+                            ? Colors.white.withAlpha(50)
+                            : Colors.white.withAlpha(25),
+                      ),
                     ),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // ── IMAGE SECTION (40%) matching .project-card-image-section ──
-                      SizedBox(
-                        width: MediaQuery.of(context).size.width * 0.38,
-                        child: Padding(
-                          padding: const EdgeInsets.all(10),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: Image.network(
-                              widget.project.imageUrl,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(
-                                color: Colors.white.withAlpha(12),
-                                child: Icon(
-                                  Icons.image_rounded,
-                                  size: 32,
-                                  color: Colors.grey.shade700,
-                                ),
-                              ),
-                              loadingBuilder: (_, child, progress) {
-                                if (progress == null) return child;
-                                return Container(
-                                  color: Colors.white.withAlpha(12),
-                                  child: Center(
-                                    child: CircularProgressIndicator(
-                                      color: const Color(0xFF3B82F6),
-                                      strokeWidth: 2,
-                                      value: progress.expectedTotalBytes != null
-                                          ? progress.cumulativeBytesLoaded /
-                                              progress.expectedTotalBytes!
-                                          : null,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // ── IMAGE SECTION (40%) matching .project-card-image-section ──
+                        SizedBox(
+                          width: MediaQuery.of(context).size.width * 0.38,
+                          child: Padding(
+                            padding: const EdgeInsets.all(10),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Stack(
+                                fit: StackFit.expand,
+                                children: [
+                                  Image.network(
+                                    widget.project.imageUrl,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => Container(
+                                      color: Colors.white.withAlpha(12),
+                                      child: Icon(
+                                        Icons.image_rounded,
+                                        size: 32,
+                                        color: Colors.grey.shade700,
+                                      ),
                                     ),
+                                    loadingBuilder: (_, child, progress) {
+                                      if (progress == null) return child;
+                                      return Container(
+                                        color: Colors.white.withAlpha(12),
+                                        child: Center(
+                                          child: CircularProgressIndicator(
+                                            color: const Color(0xFF3B82F6),
+                                            strokeWidth: 2,
+                                            value: progress
+                                                        .expectedTotalBytes !=
+                                                    null
+                                                ? progress
+                                                        .cumulativeBytesLoaded /
+                                                    progress.expectedTotalBytes!
+                                                : null,
+                                          ),
+                                        ),
+                                      );
+                                    },
                                   ),
-                                );
-                              },
+                                  if (widget.isFavorite)
+                                    Positioned(
+                                      top: 6,
+                                      right: 6,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(5),
+                                        decoration: BoxDecoration(
+                                          color: Colors.black.withAlpha(140),
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: const Icon(
+                                          Icons.favorite_rounded,
+                                          color: Colors.redAccent,
+                                          size: 16,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
 
-                      // ── INFO SECTION (60%) matching .project-card-info-section ──
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(4, 14, 14, 14),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Title — matching .project-card-title
-                              Text(
-                                widget.project.title,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                  height: 1.2,
-                                ),
-                              ),
-                              const SizedBox(height: 5),
-                              // Description — matching .project-card-description
-                              Expanded(
-                                child: Text(
-                                  widget.project.description,
-                                  maxLines: 3,
+                        // ── INFO SECTION (60%) matching .project-card-info-section ──
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(4, 14, 14, 14),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Title — matching .project-card-title
+                                Text(
+                                  widget.project.title,
+                                  maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    color: Colors.grey.shade400,
-                                    fontSize: 12.5,
-                                    height: 1.5,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    height: 1.2,
                                   ),
                                 ),
-                              ),
-                              const SizedBox(height: 6),
-                              // Tech pills — matching .tech-pill-small
-                              Wrap(
-                                spacing: 5,
-                                runSpacing: 4,
-                                children: [
-                                  // Category pill
-                                  _TechPill(label: widget.project.category),
-                                  // Votes badge
-                                  _TechPill(
-                                    label:
-                                        '▲ ${widget.project.totalVotes} votos',
-                                    isAccent: true,
+                                const SizedBox(height: 5),
+                                // Description — matching .project-card-description
+                                Expanded(
+                                  child: Text(
+                                    widget.project.description,
+                                    maxLines: 3,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      color: Colors.grey.shade400,
+                                      fontSize: 12.5,
+                                      height: 1.5,
+                                    ),
                                   ),
-                                ],
-                              ),
-                            ],
+                                ),
+                                const SizedBox(height: 6),
+                                // Tech pills — matching .tech-pill-small
+                                Wrap(
+                                  spacing: 5,
+                                  runSpacing: 4,
+                                  children: [
+                                    // Category pill
+                                    _TechPill(label: widget.project.category),
+                                    // Votes badge
+                                    _TechPill(
+                                      label:
+                                          '▲ ${widget.project.totalVotes} votos',
+                                      isAccent: true,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
         ),
-      ),
       ),
     );
   }
