@@ -4,14 +4,20 @@ import 'package:google_fonts/google_fonts.dart';
 import 'screens/home_screen.dart';
 import 'screens/ranking_screen.dart';
 import 'screens/profile_screen.dart';
+import 'screens/login_screen.dart';
+import 'services/user_service.dart';
 import 'widgets/kudo_background.dart';
 
-void main() {
-  runApp(const KudoApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final isLoggedIn = await UserService.isLoggedIn();
+  runApp(KudoApp(isLoggedIn: isLoggedIn));
 }
 
 class KudoApp extends StatelessWidget {
-  const KudoApp({super.key});
+  final bool isLoggedIn;
+
+  const KudoApp({super.key, required this.isLoggedIn});
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +97,7 @@ class KudoApp extends StatelessWidget {
           ),
         ),
       ),
-      home: const MainNavigation(),
+      home: isLoggedIn ? const MainNavigation() : const LoginScreen(),
     );
   }
 }

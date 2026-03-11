@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../services/favorite_service.dart';
 import '../services/api_service.dart';
 import '../services/voter_service.dart';
+import '../services/user_service.dart';
+import 'login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -18,7 +20,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   static const Color cardColor = Color(0x33262626); // Glassmorphic background
 
   String? _favoriteProjectName;
-  String _voterId = '';
+  String? _userName;
+  String? _userEmail;
+  String? _userPhone;
 
   @override
   void initState() {
@@ -27,8 +31,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadProfileData() async {
-    final voterId = await VoterService.getVoterId();
     final favId = await FavoriteService.getFavoriteProjectId();
+    final userData = await UserService.getUser();
 
     String? favName;
     if (favId != null) {
@@ -41,7 +45,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     if (mounted) {
       setState(() {
-        _voterId = voterId.substring(0, 8);
+        _userName = userData['name'];
+        _userEmail = userData['email'];
+        _userPhone = userData['phone'];
         _favoriteProjectName = favName;
       });
     }
@@ -97,9 +103,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
         const SizedBox(height: 18),
-        const Text(
-          'Evaluador',
-          style: TextStyle(
+        Text(
+          _userName ?? 'Evaluador',
+          style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.w800,
             color: Colors.white,
@@ -113,7 +119,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
-            'ID: $_voterId',
+            _userPhone ?? 'Sin teléfono',
             style: const TextStyle(
               color: accentColor,
               fontSize: 13,
@@ -186,6 +192,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildInfoSection() {
     return Column(
       children: [
+        if (_userEmail != null)
+          _buildInfoCard(
+            icon: Icons.email_rounded,
+            title: 'Correo Electrónico',
+            subtitle: _userEmail!,
+            gradient: [accentColor.withAlpha(15), accentColor.withAlpha(5)],
+            iconColor: accentColor,
+          ),
+        if (_userEmail != null) const SizedBox(height: 12),
         _buildInfoCard(
           icon: Icons.rocket_launch_rounded,
           title: 'Acerca de KUDO',
@@ -301,6 +316,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Text(
           'Hecho con ♥ para la educación',
           style: TextStyle(color: Colors.grey.shade800, fontSize: 12),
+        ),
+        const SizedBox(height: 20),
+        ElevatedButton.icon(
+          onPressed: () async {
+            await UserService.logout();
+            if (mounted) {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                (route) => false,
+              );
+            }
+          },
+          icon: const Icon(Icons.logout_rounded, size: 18),
+          label: const Text('Cerrar Sesión'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.redAccent.withAlpha(30),
+            foregroundColor: Colors.redAccent,
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: Colors.redAccent.withAlpha(50)),
+            ),
+          ),
         ),
       ],
     );
