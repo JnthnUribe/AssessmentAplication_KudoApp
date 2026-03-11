@@ -1039,9 +1039,11 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
         final confirm = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            backgroundColor: cardColor,
+            backgroundColor: const Color(0xFF222222), // Solid background
+            elevation: 10,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
+              side: BorderSide(color: Colors.white.withAlpha(25)),
             ),
             title: const Text(
               'Cambiar favorito',
