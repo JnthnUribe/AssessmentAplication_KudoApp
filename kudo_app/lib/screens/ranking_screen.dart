@@ -191,6 +191,17 @@ class _RankingScreenState extends State<RankingScreen>
       (p) => p.id == _favoriteProjectId,
       orElse: () => _ranking.first,
     );
+
+    final rankChange = _favoriteProjectId != null
+        ? _getPositionChange(_favoriteProjectId!, _favoriteRank)
+        : 0;
+    String message = '¡Tu favorito está en el Top $_favoriteRank!';
+    if (rankChange > 0) {
+      message = '¡Tu favorito subió al puesto #$_favoriteRank! 🚀';
+    } else if (rankChange < 0) {
+      message = 'Tu favorito bajó al puesto #$_favoriteRank 📉';
+    }
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
       child: Container(
@@ -218,7 +229,7 @@ class _RankingScreenState extends State<RankingScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '¡Tu favorito está en el Top $_favoriteRank!',
+                    message,
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w700,
