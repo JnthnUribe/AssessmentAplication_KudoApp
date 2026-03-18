@@ -60,14 +60,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
         title: const Text('Registro'),
         backgroundColor: const Color(0xFF3B82F6),
       ),
-      body: Stack(
-        children: [
-          KudoBackground(),
-          SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 60),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
+      body: KudoBackground(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 60),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
                 const Icon(
                   Icons.app_registration,
                   size: 100,
@@ -182,7 +180,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ],
             ),
           ),
-        ],
       ),
     );
   }

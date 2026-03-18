@@ -8,13 +8,12 @@ class ApiService {
   // URL de producción en Render
   static const String _renderUrl =
       'https://assessmentaplication-kudoapp.onrender.com/api';
-  static const String _localUrl = 'http://localhost:5145/api';
   static const String _emulatorUrl = 'http://10.0.2.2:5145/api';
 
   static String get baseUrl {
     // Selección dinámica del entorno
     if (kIsWeb) {
-      return _localUrl; // Desarrollo local en web
+      return _renderUrl; // Web siempre usa producción
     } else if (const bool.fromEnvironment('dart.vm.product')) {
       return _renderUrl; // Producción
     } else {

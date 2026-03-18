@@ -41,11 +41,39 @@ class Project {
   String get description => narrative.problem;
   String get roleDescription => narrative.roleDescription;
 
-  /// Returns the first image URL or empty string
+  /// Returns the first image URL, falling back to video thumbnail
   String get imageUrl {
     if (media.images.isNotEmpty) return media.images.first.url;
     if (media.imageUrls.isNotEmpty) return media.imageUrls.first;
+    // Fallback: generate thumbnail from Cloudinary video URL
+    if (media.videoUrl.isNotEmpty) return videoThumbnailUrl;
     return '';
+  }
+
+  /// Generate a thumbnail URL from a Cloudinary video URL
+  String get videoThumbnailUrl {
+    final url = media.videoUrl;
+    if (url.contains('res.cloudinary.com') && url.contains('/video/upload/')) {
+      // Insert thumbnail transformation and change extension to .jpg
+      final withoutExt = url.substring(0, url.lastIndexOf('.'));
+      return withoutExt
+              .replaceFirst('/video/upload/', '/video/upload/so_0,w_800,f_jpg/')
+          + '.jpg';
+    }
+    // YouTube thumbnail fallback
+    final ytId = extractYoutubeId(url);
+    if (ytId != null) return 'https://img.youtube.com/vi/$ytId/hqdefault.jpg';
+    return '';
+  }
+
+  static String? extractYoutubeId(String url) {
+    final uri = Uri.tryParse(url);
+    if (uri == null) return null;
+    if (uri.host.contains('youtu.be')) {
+      return uri.pathSegments.isNotEmpty ? uri.pathSegments.first : null;
+    }
+    if (uri.host.contains('youtube.com')) return uri.queryParameters['v'];
+    return null;
   }
 
   /// All image URLs for gallery display

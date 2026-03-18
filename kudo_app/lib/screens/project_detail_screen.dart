@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:youtube_player_iframe/youtube_player_iframe.dart';
+import 'package:video_player/video_player.dart';
 import '../models/project.dart';
 import '../services/api_service.dart';
 import '../services/voter_service.dart';
@@ -40,6 +42,13 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
   // Favorite
   bool _isFavorite = false;
 
+  // Video overlay
+  bool _showVideoOverlay = false;
+  YoutubePlayerController? _ytController;
+  VideoPlayerController? _vpController;
+  bool _showSkipButton = false;
+  bool _isDirectVideo = false;
+
   @override
   void initState() {
     super.initState();
@@ -51,6 +60,65 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
     _animController.forward();
     _checkExistingVote();
     _checkFavorite();
+    _initVideoOverlay();
+  }
+
+  void _initVideoOverlay() {
+    final videoUrl = widget.project.media.videoUrl;
+    if (videoUrl.isEmpty) return;
+
+    final ytId = Project.extractYoutubeId(videoUrl);
+
+    if (ytId != null) {
+      // YouTube video
+      _isDirectVideo = false;
+      _showVideoOverlay = true;
+      _ytController = YoutubePlayerController.fromVideoId(
+        videoId: ytId,
+        autoPlay: true,
+        params: const YoutubePlayerParams(
+          showFullscreenButton: false,
+          showControls: true,
+          enableCaption: false,
+          playsInline: true,
+        ),
+      );
+      _ytController!.listen((event) {
+        if (event.playerState == PlayerState.ended && mounted) {
+          setState(() => _showVideoOverlay = false);
+        }
+      });
+    } else if (videoUrl.contains('.mp4') ||
+        videoUrl.contains('cloudinary.com')) {
+      // Direct .mp4 video
+      _isDirectVideo = true;
+      _showVideoOverlay = true;
+      _vpController = VideoPlayerController.networkUrl(Uri.parse(videoUrl))
+        ..initialize().then((_) {
+          if (mounted) {
+            setState(() {});
+            _vpController!.play();
+          }
+        });
+      _vpController!.addListener(() {
+        final vp = _vpController!;
+        if (vp.value.isInitialized &&
+            vp.value.position >= vp.value.duration &&
+            vp.value.duration > Duration.zero &&
+            mounted) {
+          setState(() => _showVideoOverlay = false);
+        }
+      });
+    }
+
+    if (_showVideoOverlay) {
+      // Fallback skip button after 30 seconds
+      Future.delayed(const Duration(seconds: 30), () {
+        if (mounted && _showVideoOverlay) {
+          setState(() => _showSkipButton = true);
+        }
+      });
+    }
   }
 
   Future<void> _checkFavorite() async {
@@ -76,8 +144,62 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
     }
   }
 
+  void _replayVideo() {
+    final videoUrl = widget.project.media.videoUrl;
+    final ytId = Project.extractYoutubeId(videoUrl);
+    if (ytId != null) {
+      _ytController?.close();
+      _isDirectVideo = false;
+      _ytController = YoutubePlayerController.fromVideoId(
+        videoId: ytId,
+        autoPlay: true,
+        params: const YoutubePlayerParams(
+          showFullscreenButton: false,
+          showControls: true,
+          enableCaption: false,
+          playsInline: true,
+        ),
+      );
+      _ytController!.listen((event) {
+        if (event.playerState == PlayerState.ended && mounted) {
+          setState(() => _showVideoOverlay = false);
+        }
+      });
+    } else {
+      _vpController?.dispose();
+      _isDirectVideo = true;
+      _vpController = VideoPlayerController.networkUrl(Uri.parse(videoUrl))
+        ..initialize().then((_) {
+          if (mounted) {
+            setState(() {});
+            _vpController!.play();
+          }
+        });
+      _vpController!.addListener(() {
+        final vp = _vpController!;
+        if (vp.value.isInitialized &&
+            vp.value.position >= vp.value.duration &&
+            vp.value.duration > Duration.zero &&
+            mounted) {
+          setState(() => _showVideoOverlay = false);
+        }
+      });
+    }
+    setState(() {
+      _showVideoOverlay = true;
+      _showSkipButton = false;
+    });
+    Future.delayed(const Duration(seconds: 30), () {
+      if (mounted && _showVideoOverlay) {
+        setState(() => _showSkipButton = true);
+      }
+    });
+  }
+
   @override
   void dispose() {
+    _ytController?.close();
+    _vpController?.dispose();
     _animController.dispose();
     _commentCtrl.dispose();
     _tagCtrl.dispose();
@@ -177,13 +299,16 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
 
   @override
   Widget build(BuildContext context) {
-    return KudoBackground(
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: CustomScrollView(
-          slivers: [
-            // Hero Image
-            SliverAppBar(
+    return Stack(
+      children: [
+        // Main content
+        KudoBackground(
+          child: Scaffold(
+            backgroundColor: Colors.transparent,
+            body: CustomScrollView(
+              slivers: [
+                // Hero Image
+                SliverAppBar(
               expandedHeight: 300,
               pinned: true,
               backgroundColor: Colors.transparent,
@@ -574,58 +699,56 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                         ),
                       ],
 
-                      // Video link (if available)
-                      if (widget.project.media.videoUrl.isNotEmpty) ...[
+                      // Video thumbnail (if available)
+                      if (widget.project.media.videoUrl.isNotEmpty &&
+                          widget.project.videoThumbnailUrl.isNotEmpty) ...[
                         const SizedBox(height: 24),
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: cardColor,
+                        _buildSectionHeader(
+                          Icons.play_circle_outline_rounded,
+                          'Video del Proyecto',
+                        ),
+                        const SizedBox(height: 12),
+                        GestureDetector(
+                          onTap: _replayVideo,
+                          child: ClipRRect(
                             borderRadius: BorderRadius.circular(14),
-                            border:
-                                Border.all(color: Colors.white.withAlpha(25)),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: Colors.red.withAlpha(20),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: const Icon(
-                                  Icons.play_circle_filled_rounded,
-                                  color: Colors.redAccent,
-                                  size: 24,
-                                ),
-                              ),
-                              const SizedBox(width: 14),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Video del Proyecto',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 14,
-                                      ),
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                Image.network(
+                                  widget.project.videoThumbnailUrl,
+                                  height: 200,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => Container(
+                                    height: 200,
+                                    color: cardColor,
+                                    child: const Center(
+                                      child: Icon(Icons.videocam_rounded,
+                                          color: Colors.grey, size: 48),
                                     ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      widget.project.media.videoUrl,
-                                      style: TextStyle(
-                                        color: Colors.grey.shade600,
-                                        fontSize: 12,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ],
+                                  ),
                                 ),
-                              ),
-                            ],
+                                Container(
+                                  height: 200,
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withAlpha(100),
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.white24,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.play_arrow_rounded,
+                                    color: Colors.white,
+                                    size: 40,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
@@ -989,6 +1112,11 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
           ],
         ),
       ),
+    ),
+    // Mandatory video overlay
+    if (_showVideoOverlay)
+      _buildVideoOverlay(),
+      ],
     );
   }
 
@@ -1196,6 +1324,91 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
               ),
             ],
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVideoOverlay() {
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        color: const Color(0xF5020205),
+        child: SafeArea(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Project title
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Text(
+                  widget.project.title,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    letterSpacing: -0.3,
+                    decoration: TextDecoration.none,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Video del Proyecto',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade500,
+                  fontWeight: FontWeight.w500,
+                  decoration: TextDecoration.none,
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Video Player
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: _isDirectVideo
+                        ? (_vpController != null &&
+                                _vpController!.value.isInitialized
+                            ? VideoPlayer(_vpController!)
+                            : const Center(
+                                child: CircularProgressIndicator(
+                                    color: Colors.white)))
+                        : (_ytController != null
+                            ? YoutubePlayer(controller: _ytController!)
+                            : const SizedBox()),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              if (!_showSkipButton)
+                Text(
+                  'El video debe terminar para continuar',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey.shade600,
+                    decoration: TextDecoration.none,
+                  ),
+                ),
+              if (_showSkipButton)
+                TextButton.icon(
+                  onPressed: () => setState(() => _showVideoOverlay = false),
+                  icon: const Icon(Icons.skip_next_rounded, size: 20),
+                  label: const Text('Continuar'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: accentColor,
+                    textStyle: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
