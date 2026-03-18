@@ -42,4 +42,17 @@ class UserService {
     await prefs.remove(_keyEmail);
     await prefs.remove(_keyPhone);
   }
+
+  /// Registra un nuevo usuario
+  static Future<void> registerUser({
+    required String name,
+    required String email,
+    required String password,
+  }) async {
+    // Aquí puedes agregar lógica para enviar datos a la API o guardarlos localmente
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyName, name);
+    await prefs.setString(_keyEmail, email);
+    await prefs.setString('user_password', password);
+  }
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../services/user_service.dart';
 import '../main.dart'; // To access MainNavigation
 import '../widgets/kudo_background.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -194,6 +195,17 @@ class _LoginScreenState extends State<LoginScreen> {
                                         ),
                                       ),
                               ),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => RegisterScreen()),
+                                );
+                              },
+                              child: const Text(
+                                  '¿No tienes una cuenta? Regístrate aquí'),
                             ),
                           ],
                         ),

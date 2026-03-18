@@ -2,7 +2,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../services/favorite_service.dart';
 import '../services/api_service.dart';
-import '../services/voter_service.dart';
 import '../services/user_service.dart';
 import 'login_screen.dart';
 
@@ -15,7 +14,6 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   // Design System
-  static const Color backgroundColor = Color(0xFF020205);
   static const Color accentColor = Color(0xFF3B82F6);
   static const Color cardColor = Color(0x33262626); // Glassmorphic background
 
@@ -56,6 +54,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Perfil'),
+      ),
       backgroundColor: Colors.transparent,
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(24, 60, 24, 40),
@@ -69,6 +70,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _buildInfoSection(),
             const SizedBox(height: 36),
             _buildFooter(),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: accentColor,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: () async {
+                await UserService.logout();
+                if (!mounted) return;
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                  (route) => false,
+                );
+              },
+              child: const Text(
+                'Cerrar sesión',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
           ],
         ),
       ),
@@ -318,29 +343,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           style: TextStyle(color: Colors.grey.shade800, fontSize: 12),
         ),
         const SizedBox(height: 20),
-        ElevatedButton.icon(
-          onPressed: () async {
-            await UserService.logout();
-            if (mounted) {
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
-                (route) => false,
-              );
-            }
-          },
-          icon: const Icon(Icons.logout_rounded, size: 18),
-          label: const Text('Cerrar Sesión'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.redAccent.withAlpha(30),
-            foregroundColor: Colors.redAccent,
-            elevation: 0,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: Colors.redAccent.withAlpha(50)),
-            ),
-          ),
-        ),
       ],
     );
   }

@@ -12,12 +12,14 @@ class ApiService {
   static const String _emulatorUrl = 'http://10.0.2.2:5145/api';
 
   static String get baseUrl {
-    // Producción: Render
-    return _renderUrl;
-
-    // Para desarrollo local, comenta la línea de arriba y descomenta:
-    // if (kIsWeb) return _localUrl;
-    // return _emulatorUrl;
+    // Selección dinámica del entorno
+    if (kIsWeb) {
+      return _localUrl; // Desarrollo local en web
+    } else if (const bool.fromEnvironment('dart.vm.product')) {
+      return _renderUrl; // Producción
+    } else {
+      return _emulatorUrl; // Emulador
+    }
   }
 
   /// Obtiene la lista de todos los proyectos desde la API
@@ -179,6 +181,44 @@ class ApiService {
       return {'success': false, 'message': data['message'] ?? 'Error'};
     } catch (e) {
       return {'success': false, 'message': 'Error de conexión: $e'};
+    }
+  }
+
+  /// Crea un nuevo proyecto en la base de datos
+  Future<Project> createProject(Project project) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/projects'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(project.toJson()),
+      );
+
+      if (response.statusCode == 201) {
+        return Project.fromJson(jsonDecode(response.body));
+      } else {
+        throw Exception('Error al crear proyecto: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error de conexión: $e');
+    }
+  }
+
+  /// Actualiza un proyecto existente en la base de datos
+  Future<Project> updateProject(String id, Project project) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/projects/$id'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(project.toJson()),
+      );
+
+      if (response.statusCode == 200) {
+        return Project.fromJson(jsonDecode(response.body));
+      } else {
+        throw Exception('Error al actualizar proyecto: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error de conexión: $e');
     }
   }
 }

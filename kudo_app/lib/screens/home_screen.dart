@@ -15,7 +15,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   // Design System
-  static const Color backgroundColor = Color(0xFF020205);
   static const Color accentColor = Color(0xFF3B82F6);
 
   final ApiService _apiService = ApiService();
@@ -475,7 +474,8 @@ class _AnimatedProjectCardState extends State<_AnimatedProjectCard>
                     height:
                         140, // Fixed card height like web min-height: 240px proportionally
                     transform: Matrix4.identity()
-                      ..scale(_isHovered ? 1.02 : 1.0),
+                      ..setEntry(0, 0, _isHovered ? 1.02 : 1.0)
+                      ..setEntry(1, 1, _isHovered ? 1.02 : 1.0),
                     decoration: BoxDecoration(
                       // Web: background: rgba(38, 38, 38, 0.55)
                       color: _isHovered

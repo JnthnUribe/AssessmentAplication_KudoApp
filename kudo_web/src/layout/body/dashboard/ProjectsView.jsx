@@ -21,11 +21,18 @@ const ProjectsView = ({ onViewChange }) => {
         const fetchProjects = async () => {
             try {
                 setLoading(true);
-                const user = JSON.parse(localStorage.getItem('user'));
+                let user = JSON.parse(localStorage.getItem('user'));
                 if (!user || !user.id) {
-                    console.error('No user found in session');
-                    setLoading(false);
-                    return;
+                    console.warn('No user found in session, attempting to restore session.');
+                    // Attempt to restore session from API or other storage
+                    user = await authService.restoreSession();
+                    if (user) {
+                        localStorage.setItem('user', JSON.stringify(user));
+                    } else {
+                        console.error('Failed to restore session.');
+                        setLoading(false);
+                        return;
+                    }
                 }
 
                 const data = await projectService.getByCreatorId(user.id);

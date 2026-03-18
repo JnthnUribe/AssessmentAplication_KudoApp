@@ -12,7 +12,9 @@ namespace KudoApi.Infrastructure.Data
         {
             var connectionString = configuration.GetValue<string>("MongoDbSettings:ConnectionString");
             var databaseName = configuration.GetValue<string>("MongoDbSettings:DatabaseName");
-            var client = new MongoClient(connectionString);
+            var settings = MongoClientSettings.FromConnectionString(connectionString);
+            settings.ConnectTimeout = TimeSpan.FromSeconds(60); // Increase timeout to 60 seconds
+            var client = new MongoClient(settings);
             _database = client.GetDatabase(databaseName);
         }
 

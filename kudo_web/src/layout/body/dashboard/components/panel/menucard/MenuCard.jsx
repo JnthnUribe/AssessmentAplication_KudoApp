@@ -5,11 +5,17 @@ import './MenuCard.css';
 const MenuCard = ({ isOpen, onClose, onViewChange }) => {
     const navigate = useNavigate();
 
-    const handleLogout = () => {
-        // Here you would normally clear tokens/session
-        localStorage.removeItem('user');
-        navigate('/');
-        onClose();
+    const handleLogout = async () => {
+        try {
+            // Notify server about logout
+            await authService.logout();
+            // Clear tokens/session
+            localStorage.removeItem('user');
+            navigate('/');
+            onClose();
+        } catch (error) {
+            console.error('Error during logout:', error);
+        }
     };
 
     return (

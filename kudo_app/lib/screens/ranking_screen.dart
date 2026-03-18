@@ -16,7 +16,6 @@ class RankingScreen extends StatefulWidget {
 class _RankingScreenState extends State<RankingScreen>
     with TickerProviderStateMixin {
   // Design System
-  static const Color backgroundColor = Color(0xFF020205);
   static const Color cardColor = Color(0x33262626); // Glassmorphism backdrop
   static const Color surfaceColor = Color(0x1AFFFFFF);
   static const Color accentColor = Color(0xFF3B82F6);
