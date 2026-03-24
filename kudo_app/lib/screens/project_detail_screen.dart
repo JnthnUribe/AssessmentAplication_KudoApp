@@ -1,7 +1,9 @@
+import 'dart:ui_web' as ui_web;
+import 'dart:js_interop';
+import 'package:web/web.dart' as web;
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
-import 'package:video_player/video_player.dart';
 import '../models/project.dart';
 import '../services/api_service.dart';
 import '../services/voter_service.dart';
@@ -45,7 +47,9 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
   // Video overlay
   bool _showVideoOverlay = false;
   YoutubePlayerController? _ytController;
-  VideoPlayerController? _vpController;
+  web.HTMLVideoElement? _videoElement;
+  String? _videoViewType;
+  int _videoViewCounter = 0;
   bool _showSkipButton = false;
   bool _isDirectVideo = false;
 
@@ -90,25 +94,10 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
       });
     } else if (videoUrl.contains('.mp4') ||
         videoUrl.contains('cloudinary.com')) {
-      // Direct .mp4 video
+      // Direct .mp4 video via native HTML5 <video> element
       _isDirectVideo = true;
       _showVideoOverlay = true;
-      _vpController = VideoPlayerController.networkUrl(Uri.parse(videoUrl))
-        ..initialize().then((_) {
-          if (mounted) {
-            setState(() {});
-            _vpController!.play();
-          }
-        });
-      _vpController!.addListener(() {
-        final vp = _vpController!;
-        if (vp.value.isInitialized &&
-            vp.value.position >= vp.value.duration &&
-            vp.value.duration > Duration.zero &&
-            mounted) {
-          setState(() => _showVideoOverlay = false);
-        }
-      });
+      _registerVideoView(videoUrl);
     }
 
     if (_showVideoOverlay) {
@@ -119,6 +108,45 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
         }
       });
     }
+  }
+
+  void _registerVideoView(String videoUrl) {
+    _videoViewCounter++;
+    _videoViewType = 'kudo-video-${widget.project.id}-$_videoViewCounter';
+
+    final video = web.HTMLVideoElement()
+      ..src = videoUrl
+      ..autoplay = true
+      ..muted = true // Muted to allow autoplay in browsers
+      ..controls = true
+      ..setAttribute('playsinline', 'true')
+      ..style.width = '100%'
+      ..style.height = '100%'
+      ..style.objectFit = 'contain'
+      ..style.backgroundColor = 'black'
+      ..style.borderRadius = '16px';
+
+    video.addEventListener(
+      'ended',
+      ((web.Event e) {
+        if (mounted) setState(() => _showVideoOverlay = false);
+      }).toJS,
+    );
+
+    // Try to unmute after playback starts (user gesture context)
+    video.addEventListener(
+      'playing',
+      ((web.Event e) {
+        video.muted = false;
+      }).toJS,
+    );
+
+    _videoElement = video;
+
+    ui_web.platformViewRegistry.registerViewFactory(
+      _videoViewType!,
+      (int viewId) => video,
+    );
   }
 
   Future<void> _checkFavorite() async {
@@ -166,24 +194,9 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
         }
       });
     } else {
-      _vpController?.dispose();
+      // Re-register a new HTML video view
       _isDirectVideo = true;
-      _vpController = VideoPlayerController.networkUrl(Uri.parse(videoUrl))
-        ..initialize().then((_) {
-          if (mounted) {
-            setState(() {});
-            _vpController!.play();
-          }
-        });
-      _vpController!.addListener(() {
-        final vp = _vpController!;
-        if (vp.value.isInitialized &&
-            vp.value.position >= vp.value.duration &&
-            vp.value.duration > Duration.zero &&
-            mounted) {
-          setState(() => _showVideoOverlay = false);
-        }
-      });
+      _registerVideoView(videoUrl);
     }
     setState(() {
       _showVideoOverlay = true;
@@ -199,7 +212,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
   @override
   void dispose() {
     _ytController?.close();
-    _vpController?.dispose();
+    _videoElement?.pause();
+    _videoElement?.remove();
     _animController.dispose();
     _commentCtrl.dispose();
     _tagCtrl.dispose();
@@ -1372,9 +1386,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(16),
                     child: _isDirectVideo
-                        ? (_vpController != null &&
-                                _vpController!.value.isInitialized
-                            ? VideoPlayer(_vpController!)
+                        ? (_videoViewType != null
+                            ? HtmlElementView(viewType: _videoViewType!)
                             : const Center(
                                 child: CircularProgressIndicator(
                                     color: Colors.white)))
