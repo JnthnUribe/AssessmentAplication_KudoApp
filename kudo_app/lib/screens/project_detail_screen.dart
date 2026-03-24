@@ -1,9 +1,5 @@
-import 'dart:ui_web' as ui_web;
-import 'dart:js_interop';
-import 'package:web/web.dart' as web;
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
-import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import '../models/project.dart';
 import '../services/api_service.dart';
 import '../services/voter_service.dart';
@@ -36,7 +32,6 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
 
   // Unified eval fields
   final TextEditingController _commentCtrl = TextEditingController();
-  final TextEditingController _tagCtrl = TextEditingController();
   List<String> _tags = [];
   String _savedComment = '';
   List<String> _savedTags = [];
@@ -44,14 +39,14 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
   // Favorite
   bool _isFavorite = false;
 
-  // Video overlay
-  bool _showVideoOverlay = false;
-  YoutubePlayerController? _ytController;
-  web.HTMLVideoElement? _videoElement;
-  String? _videoViewType;
-  int _videoViewCounter = 0;
-  bool _showSkipButton = false;
-  bool _isDirectVideo = false;
+  // Preset tags for voting
+  static const List<String> _presetTags = [
+    'Innovador',
+    'Bien diseñado',
+    'Útil',
+    'Creativo',
+    'Escalable',
+  ];
 
   @override
   void initState() {
@@ -64,89 +59,6 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
     _animController.forward();
     _checkExistingVote();
     _checkFavorite();
-    _initVideoOverlay();
-  }
-
-  void _initVideoOverlay() {
-    final videoUrl = widget.project.media.videoUrl;
-    if (videoUrl.isEmpty) return;
-
-    final ytId = Project.extractYoutubeId(videoUrl);
-
-    if (ytId != null) {
-      // YouTube video
-      _isDirectVideo = false;
-      _showVideoOverlay = true;
-      _ytController = YoutubePlayerController.fromVideoId(
-        videoId: ytId,
-        autoPlay: true,
-        params: const YoutubePlayerParams(
-          showFullscreenButton: false,
-          showControls: true,
-          enableCaption: false,
-          playsInline: true,
-        ),
-      );
-      _ytController!.listen((event) {
-        if (event.playerState == PlayerState.ended && mounted) {
-          setState(() => _showVideoOverlay = false);
-        }
-      });
-    } else if (videoUrl.contains('.mp4') ||
-        videoUrl.contains('cloudinary.com')) {
-      // Direct .mp4 video via native HTML5 <video> element
-      _isDirectVideo = true;
-      _showVideoOverlay = true;
-      _registerVideoView(videoUrl);
-    }
-
-    if (_showVideoOverlay) {
-      // Fallback skip button after 30 seconds
-      Future.delayed(const Duration(seconds: 30), () {
-        if (mounted && _showVideoOverlay) {
-          setState(() => _showSkipButton = true);
-        }
-      });
-    }
-  }
-
-  void _registerVideoView(String videoUrl) {
-    _videoViewCounter++;
-    _videoViewType = 'kudo-video-${widget.project.id}-$_videoViewCounter';
-
-    final video = web.HTMLVideoElement()
-      ..src = videoUrl
-      ..autoplay = true
-      ..muted = true // Muted to allow autoplay in browsers
-      ..controls = true
-      ..setAttribute('playsinline', 'true')
-      ..style.width = '100%'
-      ..style.height = '100%'
-      ..style.objectFit = 'contain'
-      ..style.backgroundColor = 'black'
-      ..style.borderRadius = '16px';
-
-    video.addEventListener(
-      'ended',
-      ((web.Event e) {
-        if (mounted) setState(() => _showVideoOverlay = false);
-      }).toJS,
-    );
-
-    // Try to unmute after playback starts (user gesture context)
-    video.addEventListener(
-      'playing',
-      ((web.Event e) {
-        video.muted = false;
-      }).toJS,
-    );
-
-    _videoElement = video;
-
-    ui_web.platformViewRegistry.registerViewFactory(
-      _videoViewType!,
-      (int viewId) => video,
-    );
   }
 
   Future<void> _checkFavorite() async {
@@ -172,51 +84,10 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
     }
   }
 
-  void _replayVideo() {
-    final videoUrl = widget.project.media.videoUrl;
-    final ytId = Project.extractYoutubeId(videoUrl);
-    if (ytId != null) {
-      _ytController?.close();
-      _isDirectVideo = false;
-      _ytController = YoutubePlayerController.fromVideoId(
-        videoId: ytId,
-        autoPlay: true,
-        params: const YoutubePlayerParams(
-          showFullscreenButton: false,
-          showControls: true,
-          enableCaption: false,
-          playsInline: true,
-        ),
-      );
-      _ytController!.listen((event) {
-        if (event.playerState == PlayerState.ended && mounted) {
-          setState(() => _showVideoOverlay = false);
-        }
-      });
-    } else {
-      // Re-register a new HTML video view
-      _isDirectVideo = true;
-      _registerVideoView(videoUrl);
-    }
-    setState(() {
-      _showVideoOverlay = true;
-      _showSkipButton = false;
-    });
-    Future.delayed(const Duration(seconds: 30), () {
-      if (mounted && _showVideoOverlay) {
-        setState(() => _showSkipButton = true);
-      }
-    });
-  }
-
   @override
   void dispose() {
-    _ytController?.close();
-    _videoElement?.pause();
-    _videoElement?.remove();
     _animController.dispose();
     _commentCtrl.dispose();
-    _tagCtrl.dispose();
     super.dispose();
   }
 
@@ -722,9 +593,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                           'Video del Proyecto',
                         ),
                         const SizedBox(height: 12),
-                        GestureDetector(
-                          onTap: _replayVideo,
-                          child: ClipRRect(
+                        ClipRRect(
                             borderRadius: BorderRadius.circular(14),
                             child: Stack(
                               alignment: Alignment.center,
@@ -763,7 +632,6 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                                 ),
                               ],
                             ),
-                          ),
                         ),
                       ],
 
@@ -963,96 +831,52 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                                 ),
                               ),
                               const SizedBox(height: 12),
-                              // Tags input
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: TextField(
-                                      controller: _tagCtrl,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 14,
-                                      ),
-                                      decoration: InputDecoration(
-                                        hintText: 'Agregar etiqueta...',
-                                        hintStyle: TextStyle(
-                                          color: Colors.grey.shade600,
-                                        ),
-                                        filled: true,
-                                        fillColor: surfaceColor,
-                                        border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                          borderSide: BorderSide.none,
-                                        ),
-                                        contentPadding:
-                                            const EdgeInsets.symmetric(
-                                          horizontal: 14,
-                                          vertical: 12,
-                                        ),
-                                      ),
-                                      onSubmitted: (_) => _addTag(),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  GestureDetector(
-                                    onTap: _addTag,
+                              // Clickable preset tags
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: _presetTags.map((tag) {
+                                  final isSelected = _tags.contains(tag);
+                                  return GestureDetector(
+                                    onTap: () => setState(() {
+                                      if (isSelected) {
+                                        _tags.remove(tag);
+                                      } else {
+                                        _tags.add(tag);
+                                      }
+                                    }),
                                     child: Container(
-                                      padding: const EdgeInsets.all(10),
-                                      decoration: BoxDecoration(
-                                        color: accentColor,
-                                        borderRadius: BorderRadius.circular(12),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 14,
+                                        vertical: 8,
                                       ),
-                                      child: const Icon(
-                                        Icons.add_rounded,
-                                        color: Colors.white,
-                                        size: 22,
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? accentColor.withAlpha(40)
+                                            : surfaceColor,
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                          color: isSelected
+                                              ? accentColor.withAlpha(80)
+                                              : Colors.white.withAlpha(10),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        '#$tag',
+                                        style: TextStyle(
+                                          color: isSelected
+                                              ? accentColor
+                                              : Colors.grey.shade500,
+                                          fontSize: 13,
+                                          fontWeight: isSelected
+                                              ? FontWeight.w600
+                                              : FontWeight.w400,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ],
+                                  );
+                                }).toList(),
                               ),
-                              if (_tags.isNotEmpty) ...[
-                                const SizedBox(height: 10),
-                                Wrap(
-                                  spacing: 6,
-                                  runSpacing: 6,
-                                  children: _tags.map((tag) {
-                                    return Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                        vertical: 5,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: accentColor.withAlpha(20),
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            '#$tag',
-                                            style: const TextStyle(
-                                              color: accentColor,
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 4),
-                                          GestureDetector(
-                                            onTap: () => setState(
-                                                () => _tags.remove(tag)),
-                                            child: const Icon(
-                                              Icons.close,
-                                              color: accentColor,
-                                              size: 14,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  }).toList(),
-                                ),
-                              ],
                             ],
                             const SizedBox(height: 24),
 
@@ -1098,7 +922,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                                           Text(
                                             _hasAlreadyVoted
                                                 ? 'Voto Registrado'
-                                                : 'Enviar Evaluación',
+                                                : 'Enviar Voto',
                                             style: const TextStyle(
                                               fontSize: 16,
                                               fontWeight: FontWeight.w700,
@@ -1127,9 +951,6 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
         ),
       ),
     ),
-    // Mandatory video overlay
-    if (_showVideoOverlay)
-      _buildVideoOverlay(),
       ],
     );
   }
@@ -1245,15 +1066,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
     }
   }
 
-  void _addTag() {
-    final tag = _tagCtrl.text.trim();
-    if (tag.isNotEmpty && !_tags.contains(tag)) {
-      setState(() {
-        _tags.add(tag);
-        _tagCtrl.clear();
-      });
-    }
-  }
+
 
   Widget _buildEvaluationSection() {
     return Padding(
@@ -1338,90 +1151,6 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
               ),
             ],
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildVideoOverlay() {
-    return Material(
-      color: Colors.transparent,
-      child: Container(
-        color: const Color(0xF5020205),
-        child: SafeArea(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Project title
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Text(
-                  widget.project.title,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    letterSpacing: -0.3,
-                    decoration: TextDecoration.none,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Video del Proyecto',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey.shade500,
-                  fontWeight: FontWeight.w500,
-                  decoration: TextDecoration.none,
-                ),
-              ),
-              const SizedBox(height: 24),
-              // Video Player
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: AspectRatio(
-                  aspectRatio: 16 / 9,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: _isDirectVideo
-                        ? (_videoViewType != null
-                            ? HtmlElementView(viewType: _videoViewType!)
-                            : const Center(
-                                child: CircularProgressIndicator(
-                                    color: Colors.white)))
-                        : (_ytController != null
-                            ? YoutubePlayer(controller: _ytController!)
-                            : const SizedBox()),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              if (!_showSkipButton)
-                Text(
-                  'El video debe terminar para continuar',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey.shade600,
-                    decoration: TextDecoration.none,
-                  ),
-                ),
-              if (_showSkipButton)
-                TextButton.icon(
-                  onPressed: () => setState(() => _showVideoOverlay = false),
-                  icon: const Icon(Icons.skip_next_rounded, size: 20),
-                  label: const Text('Continuar'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: accentColor,
-                    textStyle: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-            ],
-          ),
         ),
       ),
     );
