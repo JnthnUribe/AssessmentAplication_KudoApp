@@ -1,5 +1,4 @@
 import 'dart:ui_web' as ui_web;
-import 'dart:js_interop';
 import 'package:web/web.dart' as web;
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
@@ -44,7 +43,10 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
 
   // Carousel
   int _carouselPage = 0;
-  final Map<String, String> _videoViewTypes = {};
+
+  // Pitch video section
+  final List<String> _pitchViewTypes = [];
+  int _pitchPage = 0;
   int _videoViewCounter = 0;
 
   // Preset tags for voting
@@ -67,39 +69,31 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
     _animController.forward();
     _checkExistingVote();
     _checkFavorite();
-    _registerVideoViews();
+    _registerPitchVideos();
   }
 
-  void _registerVideoViews() {
-    for (final item in widget.project.carouselItems) {
-      if (!item.isVideo) continue;
+  void _registerPitchVideos() {
+    final videoUrls = widget.project.allVideoUrls;
+    for (int i = 0; i < videoUrls.length; i++) {
       _videoViewCounter++;
-      final viewType = 'kudo-hero-video-${widget.project.id}-$_videoViewCounter';
+      final viewType = 'kudo-pitch-${widget.project.id}-$i-$_videoViewCounter';
 
       final video = web.HTMLVideoElement()
-        ..src = item.url
-        ..autoplay = true
-        ..muted = true
-        ..loop = true
-        ..controls = false
+        ..src = videoUrls[i]
+        ..controls = true
         ..setAttribute('playsinline', 'true')
         ..style.width = '100%'
         ..style.height = '100%'
-        ..style.objectFit = 'cover'
-        ..style.backgroundColor = 'black';
-
-      // Try to unmute after user gesture
-      video.addEventListener(
-        'playing',
-        ((web.Event e) { video.muted = false; }).toJS,
-      );
+        ..style.objectFit = 'contain'
+        ..style.backgroundColor = 'black'
+        ..style.borderRadius = '12px';
 
       ui_web.platformViewRegistry.registerViewFactory(
         viewType,
         (int viewId) => video,
       );
 
-      _videoViewTypes[item.url] = viewType;
+      _pitchViewTypes.add(viewType);
     }
   }
 
@@ -411,6 +405,12 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                           ),
                         ),
                       ),
+
+                      // Pitch del Proyecto (video section)
+                      if (widget.project.allVideoUrls.length > 1) ...[
+                        const SizedBox(height: 24),
+                        _buildPitchSection(),
+                      ],
 
                       // Role Description (if available)
                       if (widget.project.roleDescription.isNotEmpty) ...[
@@ -1136,11 +1136,6 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
           onPageChanged: (i) => setState(() => _carouselPage = i),
           itemBuilder: (context, index) {
             final item = items[index];
-            if (item.isVideo && _videoViewTypes.containsKey(item.url)) {
-              // Actual HTML5 video playback
-              return HtmlElementView(viewType: _videoViewTypes[item.url]!);
-            }
-            // Static image
             return Image.network(
               item.url,
               fit: BoxFit.cover,
@@ -1197,6 +1192,58 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
               }),
             ),
           ),
+      ],
+    );
+  }
+
+  Widget _buildPitchSection() {
+    // Show pitch videos (all videos after the first one which is in the hero)
+    final pitchCount = _pitchViewTypes.length - 1;
+    if (pitchCount <= 0) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader(Icons.videocam_rounded, 'Pitch del Proyecto'),
+        const SizedBox(height: 12),
+        AspectRatio(
+          aspectRatio: 16 / 9,
+          child: pitchCount == 1
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: HtmlElementView(viewType: _pitchViewTypes[1]),
+                )
+              : PageView.builder(
+                  itemCount: pitchCount,
+                  onPageChanged: (i) => setState(() => _pitchPage = i),
+                  itemBuilder: (_, i) => Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: HtmlElementView(viewType: _pitchViewTypes[i + 1]),
+                    ),
+                  ),
+                ),
+        ),
+        if (pitchCount > 1) ...[
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              pitchCount,
+              (i) => AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                margin: const EdgeInsets.symmetric(horizontal: 3),
+                width: _pitchPage == i ? 20 : 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: _pitchPage == i ? accentColor : Colors.grey,
+                  borderRadius: BorderRadius.circular(3),
+                ),
+              ),
+            ),
+          ),
+        ],
       ],
     );
   }

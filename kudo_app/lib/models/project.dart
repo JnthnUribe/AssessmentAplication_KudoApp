@@ -58,13 +58,39 @@ class Project {
   /// Gets effective video URL: checks media.videoUrl first, then media.images for .mp4
   String get effectiveVideoUrl {
     if (media.videoUrl.isNotEmpty) return media.videoUrl;
-    // Check if any "image" is actually a video
     for (final img in media.images) {
       if (_isVideoUrl(img.url)) return img.url;
     }
     for (final url in media.imageUrls) {
       if (_isVideoUrl(url)) return url;
     }
+    return '';
+  }
+
+  /// Returns ALL video URLs from all sources
+  List<String> get allVideoUrls {
+    final urls = <String>[];
+    if (media.videoUrl.isNotEmpty) urls.add(media.videoUrl);
+    for (final img in media.images) {
+      if (_isVideoUrl(img.url) && !urls.contains(img.url)) urls.add(img.url);
+    }
+    for (final url in media.imageUrls) {
+      if (_isVideoUrl(url) && !urls.contains(url)) urls.add(url);
+    }
+    return urls;
+  }
+
+  /// Generate thumbnail for any Cloudinary video URL
+  static String thumbnailFromVideoUrl(String url) {
+    if (url.isEmpty) return '';
+    if (url.contains('res.cloudinary.com') && url.contains('/video/upload/')) {
+      final clean = url.replaceFirst(RegExp(r'/upload/[^/]*?/'), '/upload/');
+      final withoutExt = clean.substring(0, clean.lastIndexOf('.'));
+      return '$withoutExt.jpg'
+          .replaceFirst('/video/upload/', '/video/upload/so_0,w_800,f_jpg/');
+    }
+    final ytId = extractYoutubeId(url);
+    if (ytId != null) return 'https://img.youtube.com/vi/$ytId/hqdefault.jpg';
     return '';
   }
 
@@ -116,17 +142,19 @@ class Project {
     return null;
   }
 
-  /// All media for carousel: real images + actual video URLs
+  /// All media for carousel: real images + video thumbnails
   List<CarouselItem> get carouselItems {
     final items = <CarouselItem>[];
-    // Add real images
     for (final url in realImageUrls) {
       items.add(CarouselItem(url: url, isVideo: false));
     }
-    // Add actual video URL (not thumbnail) for playback
+    // Add thumbnail for first video only (actual playback is in Pitch section)
     final vUrl = effectiveVideoUrl;
     if (vUrl.isNotEmpty) {
-      items.add(CarouselItem(url: vUrl, isVideo: true, thumbnailUrl: videoThumbnailUrl));
+      final thumb = thumbnailFromVideoUrl(vUrl);
+      if (thumb.isNotEmpty) {
+        items.add(CarouselItem(url: thumb, isVideo: false));
+      }
     }
     return items;
   }
