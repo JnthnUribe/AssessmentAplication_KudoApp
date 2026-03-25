@@ -45,7 +45,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       } catch (e) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
+          const SnackBar(content: Text('Ocurrió un error. Intenta de nuevo.')),
         );
       } finally {
         setState(() => _isLoading = false);
