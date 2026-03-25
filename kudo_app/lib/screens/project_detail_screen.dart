@@ -43,8 +43,9 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
 
   // Carousel
   int _carouselPage = 0;
+  String? _heroVideoViewType; // First video: autoplay, muted, loop
 
-  // Pitch video section
+  // Pitch video section (2nd video onwards)
   final List<String> _pitchViewTypes = [];
   int _pitchPage = 0;
   int _videoViewCounter = 0;
@@ -69,30 +70,50 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
     _animController.forward();
     _checkExistingVote();
     _checkFavorite();
-    _registerPitchVideos();
+    _registerAllVideos();
   }
 
-  void _registerPitchVideos() {
+  void _registerAllVideos() {
     final videoUrls = widget.project.allVideoUrls;
-    for (int i = 0; i < videoUrls.length; i++) {
+
+    // First video → hero (autoplay, muted, loop, no controls, cover)
+    if (videoUrls.isNotEmpty) {
       _videoViewCounter++;
-      final viewType = 'kudo-pitch-${widget.project.id}-$i-$_videoViewCounter';
+      _heroVideoViewType =
+          'kudo-hero-${widget.project.id}-$_videoViewCounter';
+      ui_web.platformViewRegistry.registerViewFactory(
+        _heroVideoViewType!,
+        (int viewId) => web.HTMLVideoElement()
+          ..src = videoUrls[0]
+          ..autoplay = true
+          ..muted = true
+          ..loop = true
+          ..controls = false
+          ..setAttribute('playsinline', 'true')
+          ..style.width = '100%'
+          ..style.height = '100%'
+          ..style.objectFit = 'cover'
+          ..style.backgroundColor = 'black',
+      );
+    }
 
-      final video = web.HTMLVideoElement()
-        ..src = videoUrls[i]
-        ..controls = true
-        ..setAttribute('playsinline', 'true')
-        ..style.width = '100%'
-        ..style.height = '100%'
-        ..style.objectFit = 'contain'
-        ..style.backgroundColor = 'black'
-        ..style.borderRadius = '12px';
-
+    // 2nd video onwards → pitch section (with controls)
+    for (int i = 1; i < videoUrls.length; i++) {
+      _videoViewCounter++;
+      final viewType =
+          'kudo-pitch-${widget.project.id}-$i-$_videoViewCounter';
       ui_web.platformViewRegistry.registerViewFactory(
         viewType,
-        (int viewId) => video,
+        (int viewId) => web.HTMLVideoElement()
+          ..src = videoUrls[i]
+          ..controls = true
+          ..setAttribute('playsinline', 'true')
+          ..style.width = '100%'
+          ..style.height = '100%'
+          ..style.objectFit = 'contain'
+          ..style.backgroundColor = 'black'
+          ..style.borderRadius = '12px',
       );
-
       _pitchViewTypes.add(viewType);
     }
   }
@@ -407,7 +428,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                       ),
 
                       // Pitch del Proyecto (video section)
-                      if (widget.project.allVideoUrls.length > 1) ...[
+                      if (_pitchViewTypes.isNotEmpty) ...[
                         const SizedBox(height: 24),
                         _buildPitchSection(),
                       ],
@@ -1117,9 +1138,16 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
   }
 
   Widget _buildHeroCarousel() {
-    final items = widget.project.carouselItems;
-    if (items.isEmpty) {
-      // No media at all — show placeholder
+    final realImages = widget.project.realImageUrls;
+    final hasHeroVideo = _heroVideoViewType != null;
+    final totalItems = (hasHeroVideo ? 1 : 0) + realImages.length;
+
+    if (totalItems == 0) {
+      // Fallback: show video thumbnail or placeholder
+      final thumb = widget.project.videoThumbnailUrl;
+      if (thumb.isNotEmpty) {
+        return Image.network(thumb, fit: BoxFit.cover);
+      }
       return Container(
         color: surfaceColor,
         child: const Center(
@@ -1132,12 +1160,17 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
       fit: StackFit.expand,
       children: [
         PageView.builder(
-          itemCount: items.length,
+          itemCount: totalItems,
           onPageChanged: (i) => setState(() => _carouselPage = i),
           itemBuilder: (context, index) {
-            final item = items[index];
+            // First item is the hero video
+            if (index == 0 && hasHeroVideo) {
+              return HtmlElementView(viewType: _heroVideoViewType!);
+            }
+            // Then real images
+            final imgIndex = hasHeroVideo ? index - 1 : index;
             return Image.network(
-              item.url,
+              realImages[imgIndex],
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => Container(
                 color: surfaceColor,
@@ -1169,14 +1202,14 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
           ),
         ),
         // Page indicator dots (only if more than 1 item)
-        if (items.length > 1)
+        if (totalItems > 1)
           Positioned(
             bottom: 12,
             left: 0,
             right: 0,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(items.length, (i) {
+              children: List.generate(totalItems, (i) {
                 return AnimatedContainer(
                   duration: const Duration(milliseconds: 250),
                   margin: const EdgeInsets.symmetric(horizontal: 3),
@@ -1197,9 +1230,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
   }
 
   Widget _buildPitchSection() {
-    // Show pitch videos (all videos after the first one which is in the hero)
-    final pitchCount = _pitchViewTypes.length - 1;
-    if (pitchCount <= 0) return const SizedBox.shrink();
+    final pitchCount = _pitchViewTypes.length;
+    if (pitchCount == 0) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1211,7 +1243,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
           child: pitchCount == 1
               ? ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: HtmlElementView(viewType: _pitchViewTypes[1]),
+                  child: HtmlElementView(viewType: _pitchViewTypes[0]),
                 )
               : PageView.builder(
                   itemCount: pitchCount,
@@ -1220,7 +1252,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                     padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: HtmlElementView(viewType: _pitchViewTypes[i + 1]),
+                      child: HtmlElementView(viewType: _pitchViewTypes[i]),
                     ),
                   ),
                 ),
