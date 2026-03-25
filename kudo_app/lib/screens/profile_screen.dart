@@ -59,7 +59,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       backgroundColor: Colors.transparent,
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(24, 60, 24, 40),
+        padding: const EdgeInsets.fromLTRB(24, 60, 24, 120),
         child: Column(
           children: [
             _buildProfileHeader(),
