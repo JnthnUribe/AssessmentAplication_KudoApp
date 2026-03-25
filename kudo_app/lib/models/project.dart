@@ -116,17 +116,17 @@ class Project {
     return null;
   }
 
-  /// All media for carousel: real images + video thumbnail
+  /// All media for carousel: real images + actual video URLs
   List<CarouselItem> get carouselItems {
     final items = <CarouselItem>[];
     // Add real images
     for (final url in realImageUrls) {
       items.add(CarouselItem(url: url, isVideo: false));
     }
-    // Add video thumbnail if exists
-    final vThumb = videoThumbnailUrl;
-    if (vThumb.isNotEmpty) {
-      items.add(CarouselItem(url: vThumb, isVideo: true));
+    // Add actual video URL (not thumbnail) for playback
+    final vUrl = effectiveVideoUrl;
+    if (vUrl.isNotEmpty) {
+      items.add(CarouselItem(url: vUrl, isVideo: true, thumbnailUrl: videoThumbnailUrl));
     }
     return items;
   }
@@ -336,6 +336,7 @@ class ProjectLink {
 class CarouselItem {
   final String url;
   final bool isVideo;
+  final String thumbnailUrl;
 
-  CarouselItem({required this.url, this.isVideo = false});
+  CarouselItem({required this.url, this.isVideo = false, this.thumbnailUrl = ''});
 }

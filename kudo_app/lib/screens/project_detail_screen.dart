@@ -1,3 +1,6 @@
+import 'dart:ui_web' as ui_web;
+import 'dart:js_interop';
+import 'package:web/web.dart' as web;
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import '../models/project.dart';
@@ -41,6 +44,8 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
 
   // Carousel
   int _carouselPage = 0;
+  final Map<String, String> _videoViewTypes = {};
+  int _videoViewCounter = 0;
 
   // Preset tags for voting
   static const List<String> _presetTags = [
@@ -62,6 +67,40 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
     _animController.forward();
     _checkExistingVote();
     _checkFavorite();
+    _registerVideoViews();
+  }
+
+  void _registerVideoViews() {
+    for (final item in widget.project.carouselItems) {
+      if (!item.isVideo) continue;
+      _videoViewCounter++;
+      final viewType = 'kudo-hero-video-${widget.project.id}-$_videoViewCounter';
+
+      final video = web.HTMLVideoElement()
+        ..src = item.url
+        ..autoplay = true
+        ..muted = true
+        ..loop = true
+        ..controls = false
+        ..setAttribute('playsinline', 'true')
+        ..style.width = '100%'
+        ..style.height = '100%'
+        ..style.objectFit = 'cover'
+        ..style.backgroundColor = 'black';
+
+      // Try to unmute after user gesture
+      video.addEventListener(
+        'playing',
+        ((web.Event e) { video.muted = false; }).toJS,
+      );
+
+      ui_web.platformViewRegistry.registerViewFactory(
+        viewType,
+        (int viewId) => video,
+      );
+
+      _videoViewTypes[item.url] = viewType;
+    }
   }
 
   Future<void> _checkFavorite() async {
@@ -1097,36 +1136,21 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
           onPageChanged: (i) => setState(() => _carouselPage = i),
           itemBuilder: (context, index) {
             final item = items[index];
-            return Stack(
-              fit: StackFit.expand,
-              children: [
-                Image.network(
-                  item.url,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
-                    color: surfaceColor,
-                    child: const Center(
-                      child: Icon(Icons.image_rounded,
-                          size: 64, color: Colors.grey),
-                    ),
-                  ),
+            if (item.isVideo && _videoViewTypes.containsKey(item.url)) {
+              // Actual HTML5 video playback
+              return HtmlElementView(viewType: _videoViewTypes[item.url]!);
+            }
+            // Static image
+            return Image.network(
+              item.url,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => Container(
+                color: surfaceColor,
+                child: const Center(
+                  child: Icon(Icons.image_rounded,
+                      size: 64, color: Colors.grey),
                 ),
-                if (item.isVideo)
-                  Center(
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withAlpha(100),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.play_arrow_rounded,
-                        color: Colors.white,
-                        size: 40,
-                      ),
-                    ),
-                  ),
-              ],
+              ),
             );
           },
         ),
