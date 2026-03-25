@@ -39,6 +39,9 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
   // Favorite
   bool _isFavorite = false;
 
+  // Carousel
+  int _carouselPage = 0;
+
   // Preset tags for voting
   static const List<String> _presetTags = [
     'Innovador',
@@ -228,40 +231,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                 ),
               ],
               flexibleSpace: FlexibleSpaceBar(
-                background: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    Image.network(
-                      widget.project.imageUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        color: surfaceColor,
-                        child: const Center(
-                          child: Icon(
-                            Icons.image_rounded,
-                            size: 64,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ),
-                    ),
-                    // Gradient overlay
-                    Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.black.withAlpha(30),
-                            const Color(0xFF020205).withAlpha(150),
-                            const Color(0xFF020205).withAlpha(0),
-                          ],
-                          stops: const [0.0, 0.7, 1.0],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                background: _buildHeroCarousel(),
               ),
             ),
 
@@ -584,56 +554,7 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
                         ),
                       ],
 
-                      // Video thumbnail (if available)
-                      if (widget.project.media.videoUrl.isNotEmpty &&
-                          widget.project.videoThumbnailUrl.isNotEmpty) ...[
-                        const SizedBox(height: 24),
-                        _buildSectionHeader(
-                          Icons.play_circle_outline_rounded,
-                          'Video del Proyecto',
-                        ),
-                        const SizedBox(height: 12),
-                        ClipRRect(
-                            borderRadius: BorderRadius.circular(14),
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                Image.network(
-                                  widget.project.videoThumbnailUrl,
-                                  height: 200,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Container(
-                                    height: 200,
-                                    color: cardColor,
-                                    child: const Center(
-                                      child: Icon(Icons.videocam_rounded,
-                                          color: Colors.grey, size: 48),
-                                    ),
-                                  ),
-                                ),
-                                Container(
-                                  height: 200,
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withAlpha(100),
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: const BoxDecoration(
-                                    color: Colors.white24,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.play_arrow_rounded,
-                                    color: Colors.white,
-                                    size: 40,
-                                  ),
-                                ),
-                              ],
-                            ),
-                        ),
-                      ],
+                      // (video now shown in hero carousel above)
 
                       // External Links (if available)
                       if (widget.project.media.links.isNotEmpty) ...[
@@ -1153,6 +1074,106 @@ class _ProjectDetailScreenState extends State<ProjectDetailScreen>
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildHeroCarousel() {
+    final items = widget.project.carouselItems;
+    if (items.isEmpty) {
+      // No media at all — show placeholder
+      return Container(
+        color: surfaceColor,
+        child: const Center(
+          child: Icon(Icons.image_rounded, size: 64, color: Colors.grey),
+        ),
+      );
+    }
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        PageView.builder(
+          itemCount: items.length,
+          onPageChanged: (i) => setState(() => _carouselPage = i),
+          itemBuilder: (context, index) {
+            final item = items[index];
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                Image.network(
+                  item.url,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    color: surfaceColor,
+                    child: const Center(
+                      child: Icon(Icons.image_rounded,
+                          size: 64, color: Colors.grey),
+                    ),
+                  ),
+                ),
+                if (item.isVideo)
+                  Center(
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withAlpha(100),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.play_arrow_rounded,
+                        color: Colors.white,
+                        size: 40,
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
+        // Gradient overlay
+        Positioned.fill(
+          child: IgnorePointer(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withAlpha(30),
+                    const Color(0xFF020205).withAlpha(150),
+                    const Color(0xFF020205).withAlpha(0),
+                  ],
+                  stops: const [0.0, 0.7, 1.0],
+                ),
+              ),
+            ),
+          ),
+        ),
+        // Page indicator dots (only if more than 1 item)
+        if (items.length > 1)
+          Positioned(
+            bottom: 12,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(items.length, (i) {
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 250),
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  width: _carouselPage == i ? 20 : 6,
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: _carouselPage == i
+                        ? Colors.white
+                        : Colors.white.withAlpha(80),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                );
+              }),
+            ),
+          ),
+      ],
     );
   }
 

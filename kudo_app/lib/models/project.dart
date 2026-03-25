@@ -36,31 +36,71 @@ class Project {
 
   // ── Convenience getters (backward compatible with screens) ──
   String get title => identity.title;
-  String get category => identity.category;
+  String get category => _normalizeCategory(identity.category);
   String get platform => identity.platform;
   String get description => narrative.problem;
   String get roleDescription => narrative.roleDescription;
 
-  /// Returns the first image URL, falling back to video thumbnail
+  /// Normalize category to title case for consistent filtering
+  static String _normalizeCategory(String cat) {
+    if (cat.isEmpty) return cat;
+    return cat[0].toUpperCase() + cat.substring(1).toLowerCase();
+  }
+
+  /// Checks if a URL is a video file
+  static bool _isVideoUrl(String url) {
+    return url.contains('.mp4') ||
+        url.contains('.mov') ||
+        url.contains('.webm') ||
+        (url.contains('cloudinary.com') && url.contains('/video/upload/'));
+  }
+
+  /// Gets effective video URL: checks media.videoUrl first, then media.images for .mp4
+  String get effectiveVideoUrl {
+    if (media.videoUrl.isNotEmpty) return media.videoUrl;
+    // Check if any "image" is actually a video
+    for (final img in media.images) {
+      if (_isVideoUrl(img.url)) return img.url;
+    }
+    for (final url in media.imageUrls) {
+      if (_isVideoUrl(url)) return url;
+    }
+    return '';
+  }
+
+  /// Returns only real image URLs (excluding .mp4 videos)
+  List<String> get realImageUrls {
+    final urls = <String>[];
+    for (final img in media.images) {
+      if (!_isVideoUrl(img.url)) urls.add(img.url);
+    }
+    if (urls.isEmpty) {
+      for (final url in media.imageUrls) {
+        if (!_isVideoUrl(url)) urls.add(url);
+      }
+    }
+    return urls;
+  }
+
+  /// Returns the first real image URL, falling back to video thumbnail
   String get imageUrl {
-    if (media.images.isNotEmpty) return media.images.first.url;
-    if (media.imageUrls.isNotEmpty) return media.imageUrls.first;
-    // Fallback: generate thumbnail from Cloudinary video URL
-    if (media.videoUrl.isNotEmpty) return videoThumbnailUrl;
+    if (realImageUrls.isNotEmpty) return realImageUrls.first;
+    // Fallback: generate thumbnail from video
+    if (effectiveVideoUrl.isNotEmpty) return videoThumbnailUrl;
     return '';
   }
 
   /// Generate a thumbnail URL from a Cloudinary video URL
   String get videoThumbnailUrl {
-    final url = media.videoUrl;
+    final url = effectiveVideoUrl;
+    if (url.isEmpty) return '';
     if (url.contains('res.cloudinary.com') && url.contains('/video/upload/')) {
-      // Insert thumbnail transformation and change extension to .jpg
-      final withoutExt = url.substring(0, url.lastIndexOf('.'));
-      return withoutExt
-              .replaceFirst('/video/upload/', '/video/upload/so_0,w_800,f_jpg/')
-          + '.jpg';
+      // Strip any existing transformations first
+      final clean = url.replaceFirst(RegExp(r'/upload/[^/]*?/'), '/upload/');
+      final withoutExt = clean.substring(0, clean.lastIndexOf('.'));
+      return '$withoutExt.jpg'
+          .replaceFirst('/video/upload/', '/video/upload/so_0,w_800,f_jpg/');
     }
-    // YouTube thumbnail fallback
     final ytId = extractYoutubeId(url);
     if (ytId != null) return 'https://img.youtube.com/vi/$ytId/hqdefault.jpg';
     return '';
@@ -76,12 +116,26 @@ class Project {
     return null;
   }
 
-  /// All image URLs for gallery display
-  List<String> get allImageUrls {
-    if (media.images.isNotEmpty) {
-      return media.images.map((img) => img.url).toList();
+  /// All media for carousel: real images + video thumbnail
+  List<CarouselItem> get carouselItems {
+    final items = <CarouselItem>[];
+    // Add real images
+    for (final url in realImageUrls) {
+      items.add(CarouselItem(url: url, isVideo: false));
     }
-    return media.imageUrls;
+    // Add video thumbnail if exists
+    final vThumb = videoThumbnailUrl;
+    if (vThumb.isNotEmpty) {
+      items.add(CarouselItem(url: vThumb, isVideo: true));
+    }
+    return items;
+  }
+
+  /// All image URLs for gallery display (backward compat)
+  List<String> get allImageUrls {
+    if (realImageUrls.isNotEmpty) return realImageUrls;
+    if (videoThumbnailUrl.isNotEmpty) return [videoThumbnailUrl];
+    return [];
   }
 
   /// Factory constructor: handles BOTH nested (API) and flat (legacy seed) formats
@@ -277,4 +331,11 @@ class ProjectLink {
   }
 
   Map<String, dynamic> toJson() => {'label': label, 'url': url};
+}
+
+class CarouselItem {
+  final String url;
+  final bool isVideo;
+
+  CarouselItem({required this.url, this.isVideo = false});
 }

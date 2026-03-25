@@ -83,23 +83,30 @@ const NewProjectInputs = ({ activeSection, onSectionChange, formData, onInputCha
 
         setIsUploading(true);
         try {
-            const newItems = [];
+            const newImages = [];
+            let newVideoUrl = formData.media.videoUrl;
 
             for (const file of files) {
                 const result = await uploadFile(file, uploadPreset, cloudName);
-                newItems.push({
-                    url: result.url,
-                    deleteToken: result.deleteToken
-                });
+                if (result.isVideo) {
+                    // Store video in videoUrl field
+                    newVideoUrl = result.url;
+                } else {
+                    newImages.push({
+                        url: result.url,
+                        deleteToken: result.deleteToken
+                    });
+                }
             }
 
             const currentImages = formData.media.images || [];
             onInputChange('media', null, {
                 ...formData.media,
-                images: [...currentImages, ...newItems]
+                images: [...currentImages, ...newImages],
+                videoUrl: newVideoUrl
             });
         } catch (error) {
-            alert('Error al subir imágenes: ' + error.message);
+            alert('Error al subir archivos: ' + error.message);
         } finally {
             setIsUploading(false);
         }
@@ -269,7 +276,7 @@ const NewProjectInputs = ({ activeSection, onSectionChange, formData, onInputCha
                                 <input
                                     type="file"
                                     multiple
-                                    accept="image/*"
+                                    accept="image/*,video/mp4,video/quicktime,video/webm"
                                     onChange={handleFileChange}
                                     id="file-upload-input"
                                     disabled={isUploading}
@@ -278,7 +285,7 @@ const NewProjectInputs = ({ activeSection, onSectionChange, formData, onInputCha
                                     {isUploading ? (
                                         <div className="upload-spinner"></div>
                                     ) : (
-                                        <span className="upload-text">Selecciona o arrastra tus mejores imágenes</span>
+                                        <span className="upload-text">Sube imágenes o video de tu proyecto</span>
                                     )}
                                 </label>
                             </div>
@@ -298,12 +305,11 @@ const NewProjectInputs = ({ activeSection, onSectionChange, formData, onInputCha
                                 ))}
                             </div>
 
-                            <InputDesign
-                                label="URL de Video (Youtube/Vimeo)"
-                                placeholder="https://..."
-                                value={formData.media.videoUrl}
-                                onChange={(e) => onInputChange('media', 'videoUrl', e.target.value)}
-                            />
+                            {formData.media.videoUrl && (
+                                <div className="video-preview-info">
+                                    <span>Video subido correctamente</span>
+                                </div>
+                            )}
                         </div>
 
                         <div className="section-footer">

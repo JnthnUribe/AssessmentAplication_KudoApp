@@ -1,14 +1,23 @@
+const isVideoFile = (file) => {
+    const videoTypes = ['video/mp4', 'video/quicktime', 'video/webm', 'video/avi'];
+    const videoExts = ['.mp4', '.mov', '.webm', '.avi'];
+    return videoTypes.includes(file.type) || videoExts.some(ext => file.name.toLowerCase().endsWith(ext));
+};
+
 export const uploadFile = async (file, uploadPreset, cloudName) => {
     if (!file) {
-        throw new Error('Por favor selecciona una imagen primero.');
+        throw new Error('Por favor selecciona un archivo primero.');
     }
+
+    const isVideo = isVideoFile(file);
+    const resourceType = isVideo ? 'video' : 'image';
 
     const uploadData = new FormData();
     uploadData.append("file", file);
     uploadData.append("upload_preset", uploadPreset);
 
     try {
-        const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+        const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`, {
             method: 'POST',
             body: uploadData,
         });
@@ -17,19 +26,20 @@ export const uploadFile = async (file, uploadPreset, cloudName) => {
         console.log("Cloudinary Upload Response:", data);
 
         if (data.secure_url) {
-            // Insertamos los parámetros de optimización en la URL
-            const urlFinal = data.secure_url.replace("/upload/", "/upload/f_auto,q_auto,w_800/");
+            const urlFinal = isVideo
+                ? data.secure_url
+                : data.secure_url.replace("/upload/", "/upload/f_auto,q_auto,w_800/");
             console.log("Delete Token received:", data.delete_token);
             return {
                 url: urlFinal,
-                deleteToken: data.delete_token
+                deleteToken: data.delete_token,
+                isVideo: isVideo
             };
         } else {
-            throw new Error('No se pudo obtener la URL de la imagen. Verifica tu Cloud Name y Preset.');
+            throw new Error('No se pudo obtener la URL. Verifica tu Cloud Name y Preset.');
         }
     } catch (error) {
-        console.error("Error subiendo la imagen:", error);
-
+        console.error(`Error subiendo ${resourceType}:`, error);
         throw error;
     }
 };
