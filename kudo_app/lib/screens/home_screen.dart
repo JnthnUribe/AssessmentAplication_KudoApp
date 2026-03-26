@@ -62,9 +62,30 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   List<Project> _filterProjects(List<Project> projects) {
     return projects.where((p) {
-      final matchesCategory =
-          _selectedCategory == 'Todos' || p.category == _selectedCategory;
-      return matchesCategory;
+      if (_selectedCategory == 'Todos') {
+        return true;
+      } else if (_selectedCategory == 'Proyecto Integrador') {
+        final cat = p.category.toLowerCase();
+        final hasCat = cat.contains('educación') ||
+            cat.contains('educacion') ||
+            cat.contains('software');
+        final hasTech = p.techStack.any((t) {
+          final l = t.toLowerCase();
+          return l.contains('educación') ||
+              l.contains('educacion') ||
+              l.contains('software');
+        });
+        return hasCat || hasTech;
+      } else if (_selectedCategory == 'Juego') {
+        final cat = p.category.toLowerCase();
+        final hasCat = cat.contains('gamin') || cat.contains('juego');
+        final hasTech = p.techStack.any((t) {
+          final l = t.toLowerCase();
+          return l.contains('gamin') || l.contains('juego');
+        });
+        return hasCat || hasTech;
+      }
+      return p.category == _selectedCategory;
     }).toList();
   }
 
@@ -75,7 +96,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         .toSet()
         .toList();
     cats.sort();
-    return ['Todos', ...cats];
+
+    final result = ['Todos', 'Proyecto Integrador', 'Juego'];
+    for (final c in cats) {
+      if (!result.contains(c)) {
+        result.add(c);
+      }
+    }
+    return result;
   }
 
   @override
