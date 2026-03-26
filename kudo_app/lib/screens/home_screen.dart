@@ -60,30 +60,25 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     });
   }
 
+  // Substring matching for custom filters (accent-safe)
+  static bool _isJuego(String cat) {
+    final l = cat.toLowerCase();
+    return l.contains('gamin') || l.contains('juego') || l.contains('videojuego');
+  }
+
+  static bool _isIntegrador(String cat) {
+    final l = cat.toLowerCase();
+    return l.contains('educaci') || l.contains('software');
+  }
+
   List<Project> _filterProjects(List<Project> projects) {
     return projects.where((p) {
       if (_selectedCategory == 'Todos') {
         return true;
       } else if (_selectedCategory == 'Proyecto Integrador') {
-        final cat = p.category.toLowerCase();
-        final hasCat = cat.contains('educación') ||
-            cat.contains('educacion') ||
-            cat.contains('software');
-        final hasTech = p.techStack.any((t) {
-          final l = t.toLowerCase();
-          return l.contains('educación') ||
-              l.contains('educacion') ||
-              l.contains('software');
-        });
-        return hasCat || hasTech;
+        return _isIntegrador(p.category);
       } else if (_selectedCategory == 'Juego') {
-        final cat = p.category.toLowerCase();
-        final hasCat = cat.contains('gamin') || cat.contains('juego');
-        final hasTech = p.techStack.any((t) {
-          final l = t.toLowerCase();
-          return l.contains('gamin') || l.contains('juego');
-        });
-        return hasCat || hasTech;
+        return _isJuego(p.category);
       }
       return p.category == _selectedCategory;
     }).toList();
@@ -99,9 +94,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
     final result = ['Todos', 'Proyecto Integrador', 'Juego'];
     for (final c in cats) {
-      if (!result.contains(c)) {
-        result.add(c);
-      }
+      // Skip categories already covered by custom filters
+      if (_isJuego(c) || _isIntegrador(c)) continue;
+      result.add(c);
     }
     return result;
   }
